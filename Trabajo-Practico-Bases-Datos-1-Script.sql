@@ -4398,3 +4398,23 @@ SELECT *, @ultimo_modelo_id AS SelectUltimoModeloId FROM modelo;
 CALL sp_alta_modelo('Modelo 1', @nResultado, @cMensaje);
 SET @ultimo_modelo_id = LAST_INSERT_ID();
 SELECT *, @ultimo_modelo_id AS SelectUltimoModeloId FROM modelo;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Concesionaria ABM
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_concesionaria('Concesionaria 1', @ultimo_fabrica_automovil_id, @nResultado, @cMensaje);
+SET @ultimo_concesionaria_id = LAST_INSERT_ID();
+SELECT *, @ultimo_concesionaria_id AS SelectUltimoConcesionariaId FROM concesionaria;
+
+CALL sp_modificacion_concesionaria(@ultimo_concesionaria_id, 'Concesionaria 1 Modificacion', @ultimo_fabrica_automovil_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_concesionaria_id AS SelectUltimoConcesionariaId FROM concesionaria;
+
+CALL sp_baja_concesionaria(@ultimo_concesionaria_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_concesionaria_id AS SelectUltimoConcesionariaId FROM concesionaria;
+
+CALL sp_alta_concesionaria('Concesionaria 1', @ultimo_fabrica_automovil_id, @nResultado, @cMensaje);
+SET @ultimo_concesionaria_id = LAST_INSERT_ID();
+SELECT *, @ultimo_concesionaria_id AS SelectUltimoConcesionariaId FROM concesionaria;
