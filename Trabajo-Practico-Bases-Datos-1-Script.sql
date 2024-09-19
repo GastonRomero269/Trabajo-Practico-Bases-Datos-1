@@ -3206,3 +3206,193 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `mover_a_siguiente_estacion`(
+    IN p_numero_chasis VARCHAR(40),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_linea_montaje_id INT;
+    DECLARE v_tarea VARCHAR(50);
+    DECLARE p_nResultado INT;
+    DECLARE p_cMensaje VARCHAR(255);
+    DECLARE v_fecha_actual DATETIME;
+    DECLARE v_fecha_egreso DATE;
+    DECLARE v_numero_chasis_ocupante VARCHAR(50);
+    
+    DECLARE v_estacion_trabajo_id_actual INT;
+    DECLARE v_estacion_trabajo_id_siguiente INT;
+    DECLARE v_vehiculo_id_actual INT;
+    DECLARE v_vehiculo_id_siguiente INT;
+    DECLARE v_fecha_ingreso DATE;
+    DECLARE v_demora_estimada_dias INT;
+
+    -- Inicializar valores
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+    SET v_fecha_actual = NOW();
+    
+    -- Obtener el ID del vehículo, línea de montaje e ID de la estación actual
+    SELECT 
+        v.vehiculo_id, 
+        v.linea_montaje_id, 
+        et.estacion_trabajo_id,
+        v.fecha_egreso
+    INTO 
+        v_vehiculo_id_actual, 
+        v_linea_montaje_id, 
+        v_estacion_trabajo_id_actual,
+        v_fecha_egreso
+    FROM 
+        tp_fabrica_automovil_bd1.vehiculo v
+    JOIN 
+        tp_fabrica_automovil_bd1.estacion_trabajo et ON v.vehiculo_id = et.vehiculo_id
+    WHERE 
+        v.numero_chasis = p_numero_chasis
+    LIMIT 1;  -- Asegura que solo se recupere una fila
+    
+    IF v_vehiculo_id_actual IS NULL THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El vehículo con el número de chasis proporcionado no existe o no está en una estación de trabajo.';
+    ELSEIF v_fecha_egreso IS NOT NULL THEN
+        SET p_nResultado = -4;
+        SET p_cMensaje = 'El vehículo ya ha finalizado anteriormente.';
+    ELSE
+        -- Obtener la siguiente estación de la línea de montaje
+        SELECT 
+            et.estacion_trabajo_id 
+        INTO 
+            v_estacion_trabajo_id_siguiente
+        FROM 
+            tp_fabrica_automovil_bd1.estacion_trabajo et
+        JOIN 
+            tp_fabrica_automovil_bd1.linea_montaje lm ON et.linea_montaje_id = lm.linea_montaje_id
+        WHERE 
+            lm.linea_montaje_id = v_linea_montaje_id
+        AND 
+            et.estacion_trabajo_id > v_estacion_trabajo_id_actual
+        ORDER BY 
+            et.estacion_trabajo_id ASC
+        LIMIT 1;  -- Asegura que solo se recupere una fila
+		
+        IF v_estacion_trabajo_id_siguiente IS NULL THEN
+            -- No hay siguiente estación, marcar el vehículo como finalizado
+            SELECT fecha_ingreso INTO v_fecha_ingreso 
+            FROM tp_fabrica_automovil_bd1.estacion_trabajo_vehiculo 
+            WHERE estacion_trabajo_id = v_estacion_trabajo_id_actual 
+            AND vehiculo_id = v_vehiculo_id_actual;
+            
+            SELECT demora_estimada_dias INTO v_demora_estimada_dias 
+            FROM tp_fabrica_automovil_bd1.estacion_trabajo 
+            WHERE estacion_trabajo_id = v_estacion_trabajo_id_actual;
+            
+            CALL sp_modificacion_estacion_trabajo_vehiculo(
+                v_estacion_trabajo_id_actual, 
+                v_vehiculo_id_actual, 
+                v_fecha_ingreso, 
+                DATE_ADD(v_fecha_ingreso, INTERVAL v_demora_estimada_dias DAY), 
+                true, 
+                p_nResultado, 
+                p_cMensaje
+            );
+        
+            -- Actualizar el vehículo como finalizado
+            UPDATE tp_fabrica_automovil_bd1.vehiculo
+            SET fecha_egreso = DATE_ADD(v_fecha_ingreso, INTERVAL v_demora_estimada_dias DAY)
+            WHERE vehiculo_id = v_vehiculo_id_actual;
+
+            -- Eliminar el vehículo de la estación actual
+            UPDATE tp_fabrica_automovil_bd1.estacion_trabajo
+            SET vehiculo_id = NULL, estado = 'Libre'
+            WHERE estacion_trabajo_id = v_estacion_trabajo_id_actual
+            AND vehiculo_id = v_vehiculo_id_actual;
+        
+            SET p_nResultado = 0;
+            SET p_cMensaje = 'El vehículo ha sido finalizado en la línea de montaje.';
+        ELSE
+            -- Verificar la tarea de la siguiente estación
+            SELECT 
+                et.tarea 
+            INTO 
+                v_tarea
+            FROM 
+                tp_fabrica_automovil_bd1.estacion_trabajo et
+            WHERE 
+                et.estacion_trabajo_id = v_estacion_trabajo_id_siguiente
+            LIMIT 1;  -- Asegura que solo se recupere una fila
+
+            -- Verificar si la siguiente estación está ocupada
+            SELECT 
+                et.vehiculo_id 
+            INTO 
+                v_vehiculo_id_siguiente
+            FROM 
+                tp_fabrica_automovil_bd1.estacion_trabajo et
+            WHERE 
+                et.estacion_trabajo_id = v_estacion_trabajo_id_siguiente
+            LIMIT 1;  -- Asegura que solo se recupere una fila
+
+            -- Mover el vehículo a la siguiente estación
+            IF v_vehiculo_id_siguiente IS NOT NULL THEN
+				SELECT numero_chasis INTO v_numero_chasis_ocupante 
+				FROM tp_fabrica_automovil_bd1.vehiculo v 
+				WHERE v.vehiculo_id = v_vehiculo_id_siguiente;
+				SET p_nResultado = -5;
+				SET p_cMensaje = CONCAT('La siguiente estación de trabajo está ocupada por el vehículo con número de chasis: ', v_numero_chasis_ocupante);
+			ELSE
+                SELECT fecha_ingreso INTO v_fecha_ingreso 
+                FROM tp_fabrica_automovil_bd1.estacion_trabajo_vehiculo 
+                WHERE estacion_trabajo_id = v_estacion_trabajo_id_actual 
+                AND vehiculo_id = v_vehiculo_id_actual;
+                
+                SELECT demora_estimada_dias INTO v_demora_estimada_dias 
+                FROM tp_fabrica_automovil_bd1.estacion_trabajo 
+                WHERE estacion_trabajo_id = v_estacion_trabajo_id_actual;
+                
+                CALL sp_modificacion_estacion_trabajo_vehiculo(
+                    v_estacion_trabajo_id_actual, 
+                    v_vehiculo_id_actual, 
+                    v_fecha_ingreso, 
+                    DATE_ADD(v_fecha_ingreso, INTERVAL v_demora_estimada_dias DAY), 
+                    true, 
+                    p_nResultado, 
+                    p_cMensaje
+                );
+                
+                CALL sp_alta_estacion_trabajo_vehiculo(
+                    v_estacion_trabajo_id_siguiente, 
+                    v_vehiculo_id_actual, 
+                    DATE_ADD(v_fecha_ingreso, INTERVAL v_demora_estimada_dias DAY), 
+                    null, 
+                    false, 
+                    p_nResultado, 
+                    p_cMensaje
+                );
+                
+                -- Asignar el vehículo a la siguiente estación
+                UPDATE tp_fabrica_automovil_bd1.estacion_trabajo
+                SET vehiculo_id = v_vehiculo_id_actual, estado = 'Ocupado'
+                WHERE estacion_trabajo_id = v_estacion_trabajo_id_siguiente;
+
+                -- Eliminar el vehículo de la estación actual
+                UPDATE tp_fabrica_automovil_bd1.estacion_trabajo
+                SET vehiculo_id = NULL, estado = 'Libre'
+                WHERE estacion_trabajo_id = v_estacion_trabajo_id_actual
+                AND vehiculo_id = v_vehiculo_id_actual;
+
+                SET p_nResultado = 0;
+                SET p_cMensaje = 'El vehículo ha sido movido a la siguiente estación.';
+            END IF;
+        END IF;
+    END IF;
+
+    -- Retornar el resultado y mensaje
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER 
