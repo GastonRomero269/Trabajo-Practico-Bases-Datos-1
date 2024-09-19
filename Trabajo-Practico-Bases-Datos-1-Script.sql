@@ -4620,3 +4620,23 @@ SELECT *, @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo
 CALL sp_alta_estacion_trabajo_vehiculo(@ultimo_estacion_trabajo_id, @ultimo_vehiculo_id, CURDATE(), NULL, 0, @nRespuesta, @cMensaje);
 SELECT estacion_trabajo_id, vehiculo_id INTO @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo_vehiculo etv WHERE etv.estacion_trabajo_id = @ultimo_estacion_trabajo_id AND etv.vehiculo_id = @ultimo_vehiculo_id LIMIT 1;
 SELECT *, @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo_vehiculo;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Estacion trabajo producto ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_estacion_trabajo_producto(@ultimo_estacion_trabajo_id, @ultimo_producto_id, 1, @nRespuesta, @cMensaje);
+SELECT estacion_trabajo_id, producto_id INTO @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo_producto etp WHERE etp.estacion_trabajo_id = @ultimo_estacion_trabajo_id AND etp.producto_id = @ultimo_producto_id;
+SELECT *, @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo_producto;
+
+CALL sp_modificacion_estacion_trabajo_producto(@ultimo_estacion_trabajo_id, @ultimo_producto_id, 1000, @nRespuesta, @cMensaje);
+SELECT *, @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo_producto;
+
+CALL sp_baja_estacion_trabajo_producto(@ultimo_estacion_trabajo_id, @ultimo_producto_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo_producto;
+
+CALL sp_alta_estacion_trabajo_producto(@ultimo_estacion_trabajo_id, @ultimo_producto_id, 1, @nRespuesta, @cMensaje);
+SELECT estacion_trabajo_id, producto_id INTO @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo_producto etp WHERE etp.estacion_trabajo_id = @ultimo_estacion_trabajo_id AND etp.producto_id = @ultimo_producto_id;
+SELECT *, @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo_producto;
