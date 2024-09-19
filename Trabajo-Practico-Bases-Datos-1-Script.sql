@@ -4006,3 +4006,75 @@ BEGIN
 END 
 
 && DELIMITER 
+
+DELIMITER  &&
+
+CREATE TRIGGER actualizar_capacidad_productiva_promedio
+AFTER UPDATE ON tp_fabrica_automovil_bd1.vehiculo
+FOR EACH ROW
+BEGIN
+    DECLARE p_nResultado INT;
+    DECLARE p_cMensaje VARCHAR(255);
+    DECLARE v_fecha_ingreso DATETIME;
+    DECLARE v_fecha_egreso DATETIME;
+    DECLARE v_tiempo_construccion DOUBLE;
+    DECLARE v_total_tiempo DOUBLE;
+    DECLARE v_numero_vehiculos INT;
+    DECLARE p_tiempo_promedio DOUBLE;
+    DECLARE v_linea_montaje_id INT;
+
+    -- Inicializar valores
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+    SET p_tiempo_promedio = 0;
+    SET v_total_tiempo = 0;
+    SET v_numero_vehiculos = 0;
+
+    -- Verificar si el vehículo ha finalizado
+    IF NEW.fecha_egreso IS NOT NULL THEN
+        -- Obtener la línea de montaje del vehículo
+        SELECT 
+            v.linea_montaje_id
+        INTO 
+            v_linea_montaje_id
+        FROM 
+            tp_fabrica_automovil_bd1.vehiculo v
+        WHERE 
+            v.vehiculo_id = NEW.vehiculo_id
+        LIMIT 1;
+
+        -- Calcular el número de vehículos terminados en la línea de montaje
+        SELECT 
+            COUNT(*) INTO v_numero_vehiculos
+        FROM 
+            tp_fabrica_automovil_bd1.vehiculo
+        WHERE 
+            linea_montaje_id = v_linea_montaje_id
+            AND fecha_egreso IS NOT NULL;
+
+        IF v_numero_vehiculos = 0 THEN
+            SET p_nResultado = -1;
+            SET p_cMensaje = 'No hay vehículos terminados en la línea de montaje especificada.';
+        ELSE
+            -- Calcular el tiempo total de construcción en días
+            SELECT 
+                SUM(DATEDIFF(fecha_egreso, fecha_ingreso)) INTO v_total_tiempo
+            FROM 
+                tp_fabrica_automovil_bd1.vehiculo
+            WHERE 
+                linea_montaje_id = v_linea_montaje_id
+                AND fecha_egreso IS NOT NULL;
+
+            -- Calcular el tiempo promedio en días
+            SET p_tiempo_promedio = (v_total_tiempo / v_numero_vehiculos) / 30;
+
+            -- Actualizar la capacidad productiva promedio de la línea de montaje
+            UPDATE tp_fabrica_automovil_bd1.linea_montaje
+            SET capacidad_productiva_promedio = p_tiempo_promedio
+            WHERE linea_montaje_id = v_linea_montaje_id;
+            
+        END IF;
+    END IF;
+END
+
+&& DELIMITER
