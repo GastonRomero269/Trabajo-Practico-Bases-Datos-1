@@ -501,3 +501,150 @@ BEGIN
 END
 
 && DELIMITER 
+
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Estacion trabajo
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_estacion_trabajo`(
+    IN p_tarea VARCHAR(40),
+    IN p_demora_estimada_dias INT,
+    IN p_estado ENUM('Ocupado', 'Libre'),
+    IN p_linea_montaje_id INT,
+    IN p_vehiculo_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la línea de montaje existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.linea_montaje
+    WHERE linea_montaje_id = p_linea_montaje_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La línea de montaje no existe.';
+    ELSE
+        -- Verificar si el vehículo existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.vehiculo
+        WHERE vehiculo_id = p_vehiculo_id;
+
+		-- Verificar si la tarea ya existe
+		SELECT COUNT(*) INTO v_count
+		FROM tp_fabrica_automovil_bd1.estacion_trabajo
+		WHERE tarea = p_tarea;
+
+		-- Insertar nueva estación de trabajo
+		INSERT INTO tp_fabrica_automovil_bd1.estacion_trabajo (tarea, demora_estimada_dias, estado, linea_montaje_id, vehiculo_id)
+		VALUES (p_tarea, p_demora_estimada_dias, p_estado, p_linea_montaje_id, p_vehiculo_id);
+
+		SET p_nResultado = 0;
+		SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_estacion_trabajo`(
+    IN p_estacion_trabajo_id INT,
+    IN p_tarea VARCHAR(40),
+    IN p_demora_estimada_dias INT,
+    IN p_estado ENUM('Ocupado', 'Libre'),
+    IN p_linea_montaje_id INT,
+    IN p_vehiculo_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la estación de trabajo existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo
+    WHERE estacion_trabajo_id = p_estacion_trabajo_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La estación de trabajo no existe.';
+    ELSE
+        -- Verificar si la línea de montaje existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.linea_montaje
+        WHERE linea_montaje_id = p_linea_montaje_id;
+
+        IF v_count = 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'La línea de montaje no existe.';
+        ELSE
+            -- Verificar si el vehículo existe
+            SELECT COUNT(*) INTO v_count
+            FROM tp_fabrica_automovil_bd1.vehiculo
+            WHERE vehiculo_id = p_vehiculo_id;
+
+			-- Actualizar estación de trabajo
+			UPDATE tp_fabrica_automovil_bd1.estacion_trabajo
+			SET tarea = p_tarea,
+				demora_estimada_dias = p_demora_estimada_dias,
+				estado = p_estado,
+				linea_montaje_id = p_linea_montaje_id,
+				vehiculo_id = p_vehiculo_id
+			WHERE estacion_trabajo_id = p_estacion_trabajo_id;
+
+			SET p_nResultado = 0;
+			SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_estacion_trabajo`(
+    IN p_estacion_trabajo_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la estación de trabajo existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo
+    WHERE estacion_trabajo_id = p_estacion_trabajo_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La estación de trabajo no existe.';
+    ELSE
+		-- Actualizar estación de trabajo
+        DELETE FROM estacion_trabajo et WHERE et.estacion_trabajo_id = p_estacion_trabajo_id;
+
+		SET p_nResultado = 0;
+		SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER 
