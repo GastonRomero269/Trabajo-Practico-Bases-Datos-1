@@ -2618,3 +2618,69 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `asignar_productos_a_estaciones`(
+    IN p_linea_montaje_id INT,
+    IN p_modelo_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_estacion_trabajo_id INT;
+    DECLARE done INT DEFAULT 0;
+    DECLARE i INT;
+    DECLARE v_producto_id INT;
+    DECLARE v_cantidad INT;
+
+    -- Cursor para obtener las estaciones de trabajo en la línea de montaje
+    DECLARE cur_estaciones CURSOR FOR
+        SELECT estacion_trabajo_id
+        FROM tp_fabrica_automovil_bd1.estacion_trabajo
+        WHERE linea_montaje_id = p_linea_montaje_id
+        ORDER BY estacion_trabajo_id ASC;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Inicializar valores
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+    
+	SELECT producto_id INTO v_producto_id FROM tp_fabrica_automovil_bd1.producto_vehiculo pv WHERE pv.modelo_id = p_modelo_id ORDER BY pv.producto_id ASC LIMIT 1;
+
+    -- Abrir el cursor de estaciones de trabajo
+    OPEN cur_estaciones;
+
+    -- Recorrer las estaciones de trabajo de la línea de montaje
+    read_estaciones_loop: LOOP
+        FETCH cur_estaciones INTO v_estacion_trabajo_id;
+        IF done THEN
+            LEAVE read_estaciones_loop;
+        END IF;
+        
+		IF (SELECT producto_id FROM tp_fabrica_automovil_bd1.producto p WHERE p.producto_id = v_producto_id) IS NOT NULL THEN
+			SELECT cantidad INTO v_cantidad FROM tp_fabrica_automovil_bd1.producto_vehiculo pv WHERE pv.modelo_id = p_modelo_id AND pv.producto_id = v_producto_id ORDER BY pv.producto_id ASC LIMIT 1;
+			-- Llamar al procedimiento para asignar productos a la estación de trabajo
+			INSERT INTO tp_fabrica_automovil_bd1.estacion_trabajo_producto (estacion_trabajo_id, producto_id, cantidad) VALUES (v_estacion_trabajo_id, v_producto_id, v_cantidad);
+        END IF;
+        
+        SET v_producto_id = v_producto_id + 1;
+        
+        -- Verificar si hubo un error en la asignación de productos
+        IF p_nResultado < 0 THEN
+            LEAVE read_estaciones_loop;
+        END IF;
+
+    END LOOP;
+
+    -- Cerrar el cursor de estaciones de trabajo
+    CLOSE cur_estaciones;
+
+    -- Devolver el mensaje de resultado
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
