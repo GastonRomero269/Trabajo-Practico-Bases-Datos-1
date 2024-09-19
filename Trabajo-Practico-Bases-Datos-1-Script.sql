@@ -2975,3 +2975,123 @@ BEGIN
 END
 
 && DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `generar_vehiculos_pedido`(
+    IN p_pedido_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_numero_chasis VARCHAR(50);
+    DECLARE v_modelo_id INT;
+    DECLARE v_fecha_ingreso DATETIME DEFAULT CURDATE();
+    DECLARE v_fecha_egreso DATETIME;
+    DECLARE v_precio DOUBLE;
+    DECLARE v_fabrica_automovil_id INT;
+    DECLARE v_linea_montaje_id INT;
+    DECLARE v_pedido_detalle_id INT;
+    DECLARE v_cantidad INT;
+    DECLARE done INT DEFAULT 0;
+    DECLARE i INT DEFAULT 0;
+    
+    -- Cursor para recorrer los detalles del pedido
+    DECLARE cur CURSOR FOR
+        SELECT 
+            pd.pedido_detalle_id,
+            pd.modelo_id,
+            pd.cantidad
+        FROM 
+            tp_fabrica_automovil_bd1.pedido_detalle pd
+        WHERE 
+            pd.pedido_id = p_pedido_id;
+
+    -- Manejar el final del cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+    SELECT fabrica_automovil_id INTO v_fabrica_automovil_id FROM concesionaria c JOIN pedido p ON p.concesionaria_id = c.concesionaria_id LIMIT 1;
+
+    -- Inicializar valores
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+
+    -- Verificar si el pedido existe
+    IF NOT EXISTS (SELECT 1 FROM tp_fabrica_automovil_bd1.pedido WHERE pedido_id = p_pedido_id) THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'No existe el pedido';
+    ELSE 
+        IF EXISTS (
+            SELECT 1
+            FROM tp_fabrica_automovil_bd1.vehiculo v
+            JOIN tp_fabrica_automovil_bd1.pedido_detalle pd ON v.pedido_detalle_id = pd.pedido_detalle_id
+            WHERE pd.pedido_id = p_pedido_id
+        ) THEN
+            SET p_nResultado = -1;
+            SET p_cMensaje = 'Pedido ya asignado';    
+        ELSE 
+            OPEN cur;
+
+            read_loop: LOOP
+                FETCH cur INTO v_pedido_detalle_id, v_modelo_id, v_cantidad;
+                IF done THEN
+                    LEAVE read_loop;
+                END IF;
+
+                -- Obtener el precio del vehículo basado en el modelo
+                SET v_precio = obtener_precio_por_modelo(v_modelo_id);
+
+                -- Obtener la línea de montaje para el modelo
+                SELECT linea_montaje_id INTO v_linea_montaje_id 
+                FROM tp_fabrica_automovil_bd1.linea_montaje 
+                WHERE modelo_id = v_modelo_id 
+                LIMIT 1;
+
+                -- Generar vehículos para cada detalle del pedido
+                SET i = 0; -- Reiniciar el contador
+                WHILE i < v_cantidad DO
+                    -- Generar un número de chasis aleatorio
+                    SELECT generar_patente_aleatoria_unica() INTO v_numero_chasis;
+
+                    -- Insertar el nuevo vehículo
+                    INSERT INTO tp_fabrica_automovil_bd1.vehiculo 
+                        (numero_chasis, modelo_id, fecha_ingreso, fecha_egreso, precio, fabrica_automovil_id, linea_montaje_id, pedido_detalle_id) 
+                    VALUES 
+                        (v_numero_chasis, v_modelo_id, v_fecha_ingreso, v_fecha_egreso, v_precio, v_fabrica_automovil_id, v_linea_montaje_id, v_pedido_detalle_id);
+
+                    -- Verificar si hubo un error en la inserción del vehículo
+                    IF ROW_COUNT() = 0 THEN
+                        SET p_nResultado = -2;
+                        SET p_cMensaje = 'Error al insertar vehículo';
+                        LEAVE read_loop;
+                    END IF;
+
+                    SET i = i + 1;
+                END WHILE;
+
+                -- Actualizar el detalle del pedido
+                CALL sp_modificacion_pedido_detalle(v_pedido_detalle_id, 'Montado en la línea de montaje', v_precio * v_cantidad, v_cantidad, v_modelo_id, p_pedido_id, p_nResultado, p_cMensaje);
+
+                -- Verificar si hubo un error al actualizar el detalle del pedido
+                IF p_nResultado < 0 THEN
+                    SET p_cMensaje = CONCAT('Error al actualizar detalle del pedido: ', p_cMensaje);
+                    LEAVE read_loop;
+                END IF;
+                
+				CALL asignar_proveedor_precio(v_modelo_id, v_cantidad, p_nResultado, p_cMensaje);
+            END LOOP;
+
+			-- Llamar al procedimiento para cargar los productos necesarios para el vehículo
+			CALL cargar_productos_a_estaciones(p_pedido_id, p_nResultado, p_cMensaje);
+            CLOSE cur;
+
+        END IF;
+    END IF;
+    
+    -- Devolver el mensaje de resultado
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
