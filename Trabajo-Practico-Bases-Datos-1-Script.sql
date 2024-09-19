@@ -3545,3 +3545,107 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `listar_cantidades_producto_pedido`(
+    IN p_pedido_id INT
+)
+BEGIN
+    DECLARE v_modelo_id INT;
+    DECLARE v_numero_chasis VARCHAR(50);
+    DECLARE v_pedido_detalle_id INT;
+    DECLARE done INT DEFAULT 0;
+
+    DECLARE v_cantidad_chasis INT DEFAULT 0;
+    DECLARE v_cantidad_motor INT DEFAULT 0;
+    DECLARE v_cantidad_sistema_transmision INT DEFAULT 0;
+    DECLARE v_cantidad_sistema_suspension INT DEFAULT 0;
+    DECLARE v_cantidad_sistema_frenos INT DEFAULT 0;
+    DECLARE v_cantidad_sistema_direccion INT DEFAULT 0;
+    DECLARE v_cantidad_sistema_escape INT DEFAULT 0;
+    DECLARE v_cantidad_sistema_electrico INT DEFAULT 0;
+    DECLARE v_cantidad_interior INT DEFAULT 0;
+    DECLARE v_cantidad_carroceria INT DEFAULT 0;
+    DECLARE v_cantidad_cristales INT DEFAULT 0;
+    DECLARE v_cantidad_pintura INT DEFAULT 0;
+
+    -- Cursor para recorrer los detalles del pedido
+    DECLARE cur CURSOR FOR
+        SELECT
+            v.modelo_id,
+            v.numero_chasis,
+            pd.pedido_detalle_id
+        FROM
+            tp_fabrica_automovil_bd1.pedido_detalle pd
+        JOIN
+            tp_fabrica_automovil_bd1.vehiculo v ON pd.pedido_detalle_id = v.pedido_detalle_id
+        WHERE
+            pd.pedido_id = p_pedido_id;
+
+    -- Manejador para el cursor del pedido
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Abrir el cursor para recorrer los detalles del pedido
+    OPEN cur;
+
+    -- Recorrer los detalles del pedido
+    read_loop: LOOP
+        FETCH cur INTO v_modelo_id, v_numero_chasis, v_pedido_detalle_id;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Llamar al procedimiento que suma los productos por modelo
+        CALL sumar_productos_por_modelo(
+            v_modelo_id,
+            @tmp_cantidad_chasis,
+            @tmp_cantidad_motor,
+            @tmp_cantidad_sistema_transmision,
+            @tmp_cantidad_sistema_suspension,
+            @tmp_cantidad_sistema_frenos,
+            @tmp_cantidad_sistema_direccion,
+            @tmp_cantidad_sistema_escape,
+            @tmp_cantidad_sistema_electrico,
+            @tmp_cantidad_interior,
+            @tmp_cantidad_carroceria,
+            @tmp_cantidad_cristales,
+            @tmp_cantidad_pintura
+        );
+
+        -- Acumular los resultados
+        SET v_cantidad_chasis = v_cantidad_chasis + @tmp_cantidad_chasis;
+        SET v_cantidad_motor = v_cantidad_motor + @tmp_cantidad_motor;
+        SET v_cantidad_sistema_transmision = v_cantidad_sistema_transmision + @tmp_cantidad_sistema_transmision;
+        SET v_cantidad_sistema_suspension = v_cantidad_sistema_suspension + @tmp_cantidad_sistema_suspension;
+        SET v_cantidad_sistema_frenos = v_cantidad_sistema_frenos + @tmp_cantidad_sistema_frenos;
+        SET v_cantidad_sistema_direccion = v_cantidad_sistema_direccion + @tmp_cantidad_sistema_direccion;
+        SET v_cantidad_sistema_escape = v_cantidad_sistema_escape + @tmp_cantidad_sistema_escape;
+        SET v_cantidad_sistema_electrico = v_cantidad_sistema_electrico + @tmp_cantidad_sistema_electrico;
+        SET v_cantidad_interior = v_cantidad_interior + @tmp_cantidad_interior;
+        SET v_cantidad_carroceria = v_cantidad_carroceria + @tmp_cantidad_carroceria;
+        SET v_cantidad_cristales = v_cantidad_cristales + @tmp_cantidad_cristales;
+        SET v_cantidad_pintura = v_cantidad_pintura + @tmp_cantidad_pintura;
+
+    END LOOP;
+
+    -- Cerrar el cursor del pedido
+    CLOSE cur;
+
+    -- Mostrar resultados acumulados
+    SELECT 
+        v_cantidad_chasis AS Chasis,
+        v_cantidad_motor AS Motor,
+        v_cantidad_sistema_transmision AS SistemaTransmision,
+        v_cantidad_sistema_suspension AS SistemaSuspension,
+        v_cantidad_sistema_frenos AS SistemaFrenos,
+        v_cantidad_sistema_direccion AS SistemaDireccion,
+        v_cantidad_sistema_escape AS SistemaEscape,
+        v_cantidad_sistema_electrico AS SistemaElectrico,
+        v_cantidad_interior AS Interior,
+        v_cantidad_carroceria AS Carroceria,
+        v_cantidad_cristales AS Cristales,
+        v_cantidad_pintura AS Pintura;
+END
+
+&& DELIMITER 
