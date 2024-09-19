@@ -3649,3 +3649,61 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `calcular_tiempo_promedio_construccion`(
+    IN p_linea_montaje_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255),
+    OUT p_tiempo_promedio DOUBLE
+)
+BEGIN
+    DECLARE v_fecha_ingreso DATETIME;
+    DECLARE v_fecha_egreso DATETIME;
+    DECLARE v_tiempo_construccion DOUBLE;
+    DECLARE v_total_tiempo DOUBLE;
+    DECLARE v_numero_vehiculos INT;
+    
+    -- Inicializar valores
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+    SET p_tiempo_promedio = 0;
+    SET v_total_tiempo = 0;
+    SET v_numero_vehiculos = 0;
+
+    -- Calcular el número de vehículos terminados
+    SELECT 
+        COUNT(*) INTO v_numero_vehiculos
+    FROM 
+        tp_fabrica_automovil_bd1.vehiculo
+    WHERE 
+        linea_montaje_id = p_linea_montaje_id
+        AND fecha_egreso IS NOT NULL;
+
+    IF v_numero_vehiculos = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'No hay vehículos terminados en la línea de montaje especificada.';
+    ELSE
+        -- Calcular el tiempo total de construcción en días
+        SELECT 
+            SUM(DATEDIFF(fecha_egreso, fecha_ingreso)) INTO v_total_tiempo
+        FROM 
+            tp_fabrica_automovil_bd1.vehiculo
+        WHERE 
+            linea_montaje_id = p_linea_montaje_id
+            AND fecha_egreso IS NOT NULL;
+
+        -- Calcular el tiempo promedio en días
+        SET p_tiempo_promedio = (v_total_tiempo / v_numero_vehiculos) / 30;
+
+        SET p_cMensaje = 'El tiempo promedio de construcción ha sido calculado exitosamente.';
+    END IF;
+    
+    -- Resultado
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje, p_tiempo_promedio;
+	END IF;
+END
+
+&& DELIMITER
