@@ -648,3 +648,153 @@ BEGIN
 END
 
 && DELIMITER 
+
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Fabrica automovil
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_fabrica_automovil`(
+    IN p_nombre VARCHAR(40),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el nombre ya existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.fabrica_automovil
+    WHERE nombre = p_nombre;
+
+    IF v_count > 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El nombre de la fábrica de automóviles ya existe.';
+    ELSE
+        -- Insertar nueva fábrica de automóviles
+        INSERT INTO tp_fabrica_automovil_bd1.fabrica_automovil (nombre)
+        VALUES (p_nombre);
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_fabrica_automovil`(
+    IN p_fabrica_automovil_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la fábrica de automóviles existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.fabrica_automovil
+    WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La fábrica de automóviles no existe.';
+    ELSE
+        -- Verificar si hay registros dependientes en otras tablas
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.vehiculo
+        WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+        IF v_count > 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'No se puede eliminar la fábrica de automóviles, tiene vehículos asociados.';
+        ELSE
+            SELECT COUNT(*) INTO v_count
+            FROM tp_fabrica_automovil_bd1.linea_montaje
+            WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+            IF v_count > 0 THEN
+                SET p_nResultado = -3;
+                SET p_cMensaje = 'No se puede eliminar la fábrica de automóviles, tiene líneas de montaje asociadas.';
+            ELSE
+                SELECT COUNT(*) INTO v_count
+                FROM tp_fabrica_automovil_bd1.producto
+                WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+                IF v_count > 0 THEN
+                    SET p_nResultado = -4;
+                    SET p_cMensaje = 'No se puede eliminar la fábrica de automóviles, tiene productos asociados.';
+                ELSE
+                    -- Eliminar fábrica de automóviles
+                    DELETE FROM tp_fabrica_automovil_bd1.fabrica_automovil
+                    WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+                    SET p_nResultado = 0;
+                    SET p_cMensaje = '';
+                END IF;
+            END IF;
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_fabrica_automovil`(
+    IN p_fabrica_automovil_id INT,
+    IN p_nombre VARCHAR(40),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la fábrica de automóviles existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.fabrica_automovil
+    WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La fábrica de automóviles no existe.';
+    ELSE
+        -- Verificar si el nombre ya existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.fabrica_automovil
+        WHERE nombre = p_nombre
+          AND fabrica_automovil_id <> p_fabrica_automovil_id;
+
+        IF v_count > 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'El nombre de la fábrica de automóviles ya existe.';
+        ELSE
+            -- Actualizar fábrica de automóviles
+            UPDATE tp_fabrica_automovil_bd1.fabrica_automovil
+            SET nombre = p_nombre
+            WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
