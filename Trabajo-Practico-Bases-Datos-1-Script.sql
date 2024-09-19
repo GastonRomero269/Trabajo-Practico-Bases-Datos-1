@@ -3095,3 +3095,114 @@ BEGIN
 END
 
 && DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `iniciar_montaje`(
+    IN p_numero_chasis VARCHAR(40),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_vehiculo_id INT;
+    DECLARE v_linea_montaje_id INT;
+    DECLARE v_estacion_trabajo_id INT;
+    DECLARE v_vehiculo_id_ocupado INT;
+    DECLARE p_nResultado INT;
+    DECLARE p_cMensaje VARCHAR(255);
+    DECLARE v_fecha_egreso DATE;
+    DECLARE v_numero_chasis_ocupante VARCHAR(50);
+
+    -- Inicializar valores
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+
+    -- Verificar si el vehículo existe y obtener su ID, línea de montaje, y fecha de egreso
+    SELECT 
+        vehiculo_id, 
+        fecha_egreso, 
+        linea_montaje_id 
+    INTO 
+        v_vehiculo_id, 
+        v_fecha_egreso, 
+        v_linea_montaje_id 
+    FROM 
+        tp_fabrica_automovil_bd1.vehiculo 
+    WHERE 
+        numero_chasis = p_numero_chasis;
+
+	IF v_linea_montaje_id IS NOT NULL THEN
+		-- Validar si el vehículo ya tiene una fecha de egreso
+		IF v_fecha_egreso IS NOT NULL THEN
+			SET p_nResultado = -4;
+			SET p_cMensaje = 'El vehículo ya ha finalizado anteriormente.';
+		ELSE 
+			-- Validar si el vehículo existe
+			IF v_vehiculo_id IS NULL THEN
+				SET p_nResultado = -1;
+				SET p_cMensaje = 'El vehículo con el número de chasis proporcionado no existe.';
+			ELSE
+				-- Verificar si el vehículo ya está asignado a una estación de trabajo
+				SELECT 
+					estacion_trabajo_id 
+				INTO 
+					v_estacion_trabajo_id 
+				FROM 
+					tp_fabrica_automovil_bd1.estacion_trabajo 
+				WHERE 
+					vehiculo_id = v_vehiculo_id 
+				LIMIT 1;
+
+				IF v_estacion_trabajo_id IS NOT NULL THEN
+					SET p_nResultado = -6;
+					SET p_cMensaje = 'El vehículo ya está asignado a una estación de trabajo.';
+				ELSE
+					-- Obtener la primera estación de la línea de montaje y verificar si está ocupada
+					SELECT 
+						et.estacion_trabajo_id, 
+						et.vehiculo_id 
+					INTO 
+						v_estacion_trabajo_id, 
+						v_vehiculo_id_ocupado 
+					FROM 
+						tp_fabrica_automovil_bd1.estacion_trabajo et 
+					WHERE 
+						et.linea_montaje_id = v_linea_montaje_id 
+					ORDER BY 
+						et.estacion_trabajo_id ASC 
+					LIMIT 1;
+
+					-- Validar si la estación está ocupada
+					IF v_vehiculo_id_ocupado IS NOT NULL THEN
+						SELECT numero_chasis INTO v_numero_chasis_ocupante 
+						FROM tp_fabrica_automovil_bd1.vehiculo v 
+						WHERE v.vehiculo_id = v_vehiculo_id_ocupado;
+						SET p_nResultado = -5;
+						SET p_cMensaje = CONCAT('La primera estación de trabajo está ocupada por el vehículo con número de chasis: ', v_numero_chasis_ocupante);
+					ELSE
+						-- Asignar el vehículo a la estación de trabajo
+						UPDATE tp_fabrica_automovil_bd1.estacion_trabajo 
+						SET vehiculo_id = v_vehiculo_id, estado = 'Ocupado' 
+						WHERE estacion_trabajo_id = v_estacion_trabajo_id;
+
+						-- Registrar el movimiento en la tabla `estacion_trabajo_vehiculo`
+						CALL sp_alta_estacion_trabajo_vehiculo(v_estacion_trabajo_id, v_vehiculo_id, curdate(), null, false, p_nResultado, p_cMensaje);
+
+						SET p_nResultado = 0;
+						SET p_cMensaje = 'Vehículo asignado a la estación de trabajo correctamente.';
+					END IF;
+				END IF;
+			END IF;
+		END IF;
+	ELSE 
+		SET p_nResultado = -7;
+		SET p_cMensaje = 'Vehículo no tiene asignado una linea de montaje.';
+    END IF;
+
+    -- Retornar el resultado y mensaje
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER 
