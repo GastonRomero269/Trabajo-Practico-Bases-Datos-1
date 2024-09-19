@@ -3429,3 +3429,119 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sumar_productos_por_modelo`(
+    IN p_modelo_id INT,
+    OUT p_cantidad_chasis INT,
+    OUT p_cantidad_motor INT,
+    OUT p_cantidad_sistema_transmision INT,
+    OUT p_cantidad_sistema_suspension INT,
+    OUT p_cantidad_sistema_frenos INT,
+    OUT p_cantidad_sistema_direccion INT,
+    OUT p_cantidad_sistema_escape INT,
+    OUT p_cantidad_sistema_electrico INT,
+    OUT p_cantidad_interior INT,
+    OUT p_cantidad_carroceria INT,
+    OUT p_cantidad_cristales INT,
+    OUT p_cantidad_pintura INT
+)
+BEGIN
+    DECLARE v_producto_id INT;
+    DECLARE v_producto_cantidad INT;
+    DECLARE done_product INT DEFAULT 0;
+    
+	DECLARE v_producto_id_1 INT;
+    DECLARE v_producto_id_2 INT;
+    DECLARE v_producto_id_3 INT;
+    DECLARE v_producto_id_4 INT;
+    DECLARE v_producto_id_5 INT;
+    DECLARE v_producto_id_6 INT;
+    DECLARE v_producto_id_7 INT;
+	DECLARE v_producto_id_8 INT;
+	DECLARE v_producto_id_9 INT;
+	DECLARE v_producto_id_10 INT;
+	DECLARE v_producto_id_11 INT;
+	DECLARE v_producto_id_12 INT;
+    
+    -- Cursor para recorrer los productos requeridos para el modelo actual
+    DECLARE product_cursor CURSOR FOR 
+        SELECT pv.producto_id, pv.cantidad 
+        FROM tp_fabrica_automovil_bd1.producto_vehiculo pv 
+        WHERE pv.modelo_id = p_modelo_id;
+
+    -- Manejador para el cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done_product = 1;
+    
+    SELECT producto_id INTO v_producto_id_1 FROM producto p WHERE p.nombre = 'Chasis';
+    SELECT producto_id INTO v_producto_id_2 FROM producto p WHERE p.nombre = 'Motor';
+    SELECT producto_id INTO v_producto_id_3 FROM producto p WHERE p.nombre = 'Sistema de transmision';
+    SELECT producto_id INTO v_producto_id_4 FROM producto p WHERE p.nombre = 'Sistema de suspension';
+    SELECT producto_id INTO v_producto_id_5 FROM producto p WHERE p.nombre = 'Sistema de frenos';
+    SELECT producto_id INTO v_producto_id_6 FROM producto p WHERE p.nombre = 'Sistema de direccion';
+    SELECT producto_id INTO v_producto_id_7 FROM producto p WHERE p.nombre = 'Sistema de escape';
+    SELECT producto_id INTO v_producto_id_8 FROM producto p WHERE p.nombre = 'Sistema electrico';
+    SELECT producto_id INTO v_producto_id_9 FROM producto p WHERE p.nombre = 'Interior';
+    SELECT producto_id INTO v_producto_id_10 FROM producto p WHERE p.nombre = 'Carroceria';
+    SELECT producto_id INTO v_producto_id_11 FROM producto p WHERE p.nombre = 'Cristales';
+    SELECT producto_id INTO v_producto_id_12 FROM producto p WHERE p.nombre = 'Pintura';
+
+    -- Inicializar las variables de salida
+    SET p_cantidad_chasis = 0;
+    SET p_cantidad_motor = 0;
+    SET p_cantidad_sistema_transmision = 0;
+    SET p_cantidad_sistema_suspension = 0;
+    SET p_cantidad_sistema_frenos = 0;
+    SET p_cantidad_sistema_direccion = 0;
+    SET p_cantidad_sistema_escape = 0;
+    SET p_cantidad_sistema_electrico = 0;
+    SET p_cantidad_interior = 0;
+    SET p_cantidad_carroceria = 0;
+    SET p_cantidad_cristales = 0;
+    SET p_cantidad_pintura = 0;
+
+    -- Abrir el cursor del producto
+    OPEN product_cursor;
+
+    -- Recorrer los productos requeridos para el modelo actual
+    product_loop: LOOP
+        FETCH product_cursor INTO v_producto_id, v_producto_cantidad;
+        IF done_product THEN
+            LEAVE product_loop;
+        END IF;
+
+        -- Incrementar las cantidades según el producto_id
+        IF v_producto_id = v_producto_id_1 THEN
+            SET p_cantidad_chasis = p_cantidad_chasis + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_2 THEN
+            SET p_cantidad_motor = p_cantidad_motor + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_3 THEN
+            SET p_cantidad_sistema_transmision = p_cantidad_sistema_transmision + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_4 THEN
+            SET p_cantidad_sistema_suspension = p_cantidad_sistema_suspension + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_5 THEN
+            SET p_cantidad_sistema_frenos = p_cantidad_sistema_frenos + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_6 THEN
+            SET p_cantidad_sistema_direccion = p_cantidad_sistema_direccion + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_7 THEN
+            SET p_cantidad_sistema_escape = p_cantidad_sistema_escape + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_8 THEN
+            SET p_cantidad_sistema_electrico = p_cantidad_sistema_electrico + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_9 THEN
+            SET p_cantidad_interior = p_cantidad_interior + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_10 THEN
+            SET p_cantidad_carroceria = p_cantidad_carroceria + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_11 THEN
+            SET p_cantidad_cristales = p_cantidad_cristales + v_producto_cantidad;
+        ELSEIF v_producto_id = v_producto_id_12 THEN
+            SET p_cantidad_pintura = p_cantidad_pintura + v_producto_cantidad;
+        END IF;
+
+    END LOOP;
+
+    -- Cerrar el cursor del producto
+    CLOSE product_cursor;
+END
+
+&& DELIMITER 
