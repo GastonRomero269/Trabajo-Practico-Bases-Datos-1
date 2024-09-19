@@ -4538,3 +4538,25 @@ SELECT *, @ultimo_producto_id, @ultimo_modelo_id FROM producto_vehiculo;
 CALL sp_alta_producto_vehiculo(@ultimo_producto_id, @ultimo_modelo_id, 100, @nRespuesta, @cMensaje);
 SELECT producto_id, modelo_id INTO @ultimo_producto_id, @ultimo_modelo_id FROM producto_vehiculo pv WHERE pv.producto_id = @ultimo_producto_id AND pv.modelo_id = @ultimo_modelo_id LIMIT 1;
 SELECT *, @ultimo_producto_id, @ultimo_modelo_id FROM producto_vehiculo;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Linea montaje ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_linea_montaje(0, 'Libre', 0, "Modelo 2", @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+SELECT modelo_id INTO @ultimo_modelo_id FROM modelo m WHERE m.modelo = "Modelo 2";
+SELECT linea_montaje_id INTO @ultimo_linea_montaje_id FROM linea_montaje lm WHERE lm.modelo_id = @ultimo_modelo_id;
+SELECT *, @ultimo_linea_montaje_id AS SelectUltimoLineaMontajeId FROM linea_montaje;
+
+CALL sp_modificacion_linea_montaje(@ultimo_linea_montaje_id, 1000, 'Libre', 0, @ultimo_modelo_id, @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+SELECT * FROM linea_montaje;
+
+CALL sp_baja_linea_montaje(@ultimo_linea_montaje_id, @nResultado, @cMensaje);
+SELECT * FROM linea_montaje;
+
+CALL sp_alta_linea_montaje(0, 'Libre', 0, "Modelo 2", @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+SELECT modelo_id INTO @ultimo_modelo_id FROM modelo m WHERE m.modelo = "Modelo 2";
+SELECT linea_montaje_id INTO @ultimo_linea_montaje_id FROM linea_montaje lm WHERE lm.modelo_id = @ultimo_modelo_id;
+SELECT *, @ultimo_linea_montaje_id AS SelectUltimoLineaMontajeId FROM linea_montaje;
