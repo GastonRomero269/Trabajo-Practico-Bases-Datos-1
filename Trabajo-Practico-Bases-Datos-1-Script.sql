@@ -1878,3 +1878,130 @@ BEGIN
 END
 
 && DELIMITER
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Registro venta
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_registro_venta`(
+    IN p_fecha_emision DATE,
+    IN p_total DOUBLE,
+    IN p_concesionaria_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la concesionaria existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.concesionaria
+    WHERE concesionaria_id = p_concesionaria_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La concesionaria no existe.';
+    ELSE
+        -- Insertar nuevo registro de venta
+        INSERT INTO tp_fabrica_automovil_bd1.registro_venta (fecha_emision, total, concesionaria_id)
+        VALUES (p_fecha_emision, p_total, p_concesionaria_id);
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_registro_venta`(
+    IN p_registro_venta_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el registro de venta existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.registro_venta
+    WHERE registro_venta_id = p_registro_venta_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El registro de venta no existe.';
+    ELSE
+        -- Eliminar registro de venta
+        DELETE FROM tp_fabrica_automovil_bd1.registro_venta
+        WHERE registro_venta_id = p_registro_venta_id;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_registro_venta`(
+    IN p_registro_venta_id INT,
+    IN p_fecha_emision DATE,
+    IN p_total DOUBLE,
+    IN p_concesionaria_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el registro de venta existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.registro_venta
+    WHERE registro_venta_id = p_registro_venta_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El registro de venta no existe.';
+    ELSE
+        -- Verificar si la concesionaria existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.concesionaria
+        WHERE concesionaria_id = p_concesionaria_id;
+
+        IF v_count = 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'La concesionaria no existe.';
+        ELSE
+            -- Actualizar registro de venta
+            UPDATE tp_fabrica_automovil_bd1.registro_venta
+            SET fecha_emision = p_fecha_emision,
+                total = p_total,
+                concesionaria_id = p_concesionaria_id
+            WHERE registro_venta_id = p_registro_venta_id;
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
