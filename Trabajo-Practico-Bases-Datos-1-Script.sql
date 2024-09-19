@@ -4640,3 +4640,23 @@ SELECT *, @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo
 CALL sp_alta_estacion_trabajo_producto(@ultimo_estacion_trabajo_id, @ultimo_producto_id, 1, @nRespuesta, @cMensaje);
 SELECT estacion_trabajo_id, producto_id INTO @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo_producto etp WHERE etp.estacion_trabajo_id = @ultimo_estacion_trabajo_id AND etp.producto_id = @ultimo_producto_id;
 SELECT *, @ultimo_estacion_trabajo_id, @ultimo_producto_id FROM estacion_trabajo_producto;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Registro venta ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+CALL sp_alta_registro_venta(CURDATE(), 0, @ultimo_concesionaria_id, @nResultado, @cMensaje);
+SET @ultimo_registro_venta_id = LAST_INSERT_ID();
+SELECT *, @ultimo_registro_venta_id AS SelectUltimoRegistroVentaloId FROM registro_venta;
+
+CALL sp_modificacion_registro_venta(@ultimo_registro_venta_id, CURDATE(), 10000, @ultimo_concesionaria_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_registro_venta_id AS SelectUltimoRegistroVentaloId FROM registro_venta;
+
+CALL sp_baja_registro_venta(@ultimo_registro_venta_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_registro_venta_id AS SelectUltimoRegistroVentaloId FROM registro_venta;
+
+CALL sp_alta_registro_venta(CURDATE(), 0, @ultimo_concesionaria_id, @nResultado, @cMensaje);
+SET @ultimo_registro_venta_id = LAST_INSERT_ID();
+SELECT *, @ultimo_registro_venta_id AS SelectUltimoRegistroVentaloId FROM registro_venta;
