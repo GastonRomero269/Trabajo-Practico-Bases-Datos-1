@@ -4600,3 +4600,23 @@ SELECT *, @ultimo_vehiculo_id AS SelectUltimoVehiculoId FROM vehiculo;
 CALL sp_alta_vehiculo('AAAAAA', @ultimo_modelo_id, CURDATE(), NULL, 0, @ultimo_fabrica_automovil_id, @ultimo_linea_montaje_id, @ultimo_pedido_detalle_id, @nResultado, @cMensaje);
 SET @ultimo_vehiculo_id = LAST_INSERT_ID();
 SELECT *, @ultimo_vehiculo_id AS SelectUltimoVehiculoId FROM vehiculo;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Estacion trabajo vehiculo ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
+CALL sp_alta_estacion_trabajo_vehiculo(@ultimo_estacion_trabajo_id, @ultimo_vehiculo_id, CURDATE(), NULL, 0, @nRespuesta, @cMensaje);
+SELECT estacion_trabajo_id, vehiculo_id INTO @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo_vehiculo etv WHERE etv.estacion_trabajo_id = @ultimo_estacion_trabajo_id AND etv.vehiculo_id = @ultimo_vehiculo_id LIMIT 1;
+SELECT *, @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo_vehiculo;
+
+CALL sp_modificacion_estacion_trabajo_vehiculo(@ultimo_estacion_trabajo_id, @ultimo_vehiculo_id, CURDATE(), NULL, 1, @nRespuesta, @cMensaje);
+SELECT *, @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo_vehiculo;
+
+CALL sp_baja_estacion_trabajo_vehiculo(@ultimo_estacion_trabajo_id, @ultimo_vehiculo_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo_vehiculo;
+
+CALL sp_alta_estacion_trabajo_vehiculo(@ultimo_estacion_trabajo_id, @ultimo_vehiculo_id, CURDATE(), NULL, 0, @nRespuesta, @cMensaje);
+SELECT estacion_trabajo_id, vehiculo_id INTO @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo_vehiculo etv WHERE etv.estacion_trabajo_id = @ultimo_estacion_trabajo_id AND etv.vehiculo_id = @ultimo_vehiculo_id LIMIT 1;
+SELECT *, @ultimo_estacion_trabajo_id, @ultimo_vehiculo_id FROM estacion_trabajo_vehiculo;
