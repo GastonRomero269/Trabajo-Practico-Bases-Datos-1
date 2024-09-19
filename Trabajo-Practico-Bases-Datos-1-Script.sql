@@ -4735,3 +4735,32 @@ SET @proveedor_2 = LAST_INSERT_ID();
 
 CALL sp_alta_proveedor('TurboSupply', @nRespuesta, @cMensaje);
 SET @proveedor_3 = LAST_INSERT_ID();
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Prueba de las funcionalidades
+
+-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Evaluacion del montaje de los vehiculos
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*
+CALL generar_vehiculos_pedido(@ultimo_pedido_id, @nResultado, @cMensaje);
+
+CALL iniciar_montaje('NI 186 WG', @nResultado, @cMensaje);
+CALL iniciar_montaje('RO 867 UP', @nResultado, @cMensaje);
+CALL iniciar_montaje('PH 518 WV', @nResultado, @cMensaje);
+
+CALL mover_a_siguiente_estacion('NI 186 WG', @nResultado, @cMensaje);
+CALL mover_a_siguiente_estacion('RO 867 UP', @nResultado, @cMensaje);
+CALL mover_a_siguiente_estacion('PH 518 WV', @nResultado, @cMensaje);
+
+CALL listar_vehiculo_pedido(3);
+CALL listar_cantidades_producto_pedido(3);
+CALL calcular_tiempo_promedio_construccion(1, @nRespuesta, @cMensaje, @cTiempoPromedio);
+*/
+
