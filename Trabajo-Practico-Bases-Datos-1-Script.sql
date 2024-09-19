@@ -2824,3 +2824,81 @@ BEGIN
 END
 
 && DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `asignar_linea_montaje_vehiculo`(
+    IN p_vehiculo_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_modelo VARCHAR(40);
+    DECLARE v_precio DOUBLE;
+    DECLARE v_fabrica_automovil_id INT;
+    DECLARE v_cantidad INT;
+    DECLARE v_linea_montaje_id INT;
+    DECLARE v_capacidad_productiva_promedio INT;
+    DECLARE done INT DEFAULT 0;
+    DECLARE cur_linea_montaje CURSOR FOR 
+        SELECT lm.linea_montaje_id, lm.capacidad_productiva_promedio 
+        FROM tp_fabrica_automovil_bd1.linea_montaje lm 
+        WHERE lm.fabrica_automovil_id = v_fabrica_automovil_id
+        AND lm.modelo = v_modelo  -- Buscar la línea de montaje por modelo
+        ORDER BY lm.linea_montaje_id;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Inicializar valores
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+
+    -- Obtener el modelo, fábrica y cantidad del vehículo
+    SELECT v.modelo, v.precio, v.fabrica_automovil_id, pd.cantidad 
+    INTO v_modelo, v_precio, v_fabrica_automovil_id, v_cantidad
+    FROM tp_fabrica_automovil_bd1.vehiculo v 
+    JOIN tp_fabrica_automovil_bd1.pedido_detalle pd ON pd.pedido_detalle_id = v.pedido_detalle_id 
+    WHERE v.vehiculo_id = p_vehiculo_id;
+
+    IF p_vehiculo_id IS NULL THEN
+        SET p_nResultado = -2;
+        SET p_cMensaje = 'El vehículo del pedido_detalle no existe';
+    ELSE
+        -- Verificar si el vehículo ya tiene asignada una línea de montaje
+        SELECT linea_montaje_id INTO @tmp_v_linea_montaje_id 
+        FROM tp_fabrica_automovil_bd1.vehiculo 
+        WHERE vehiculo_id = p_vehiculo_id;
+
+        IF @tmp_v_linea_montaje_id IS NOT NULL THEN
+            SET p_nResultado = -8;
+            SET p_cMensaje = 'El pedido ya ha sido asignado a una línea de montaje';
+        ELSE
+            -- Asignar línea de montaje al vehículo
+            SET @asignacion_exitosa = FALSE;
+            OPEN cur_linea_montaje;
+            read_loop: LOOP
+                FETCH cur_linea_montaje INTO v_linea_montaje_id, v_capacidad_productiva_promedio;
+                IF done THEN
+                    LEAVE read_loop;
+                END IF;
+
+                -- Asignar la primera línea de montaje disponible
+                UPDATE tp_fabrica_automovil_bd1.vehiculo 
+                SET linea_montaje_id = v_linea_montaje_id 
+                WHERE vehiculo_id = p_vehiculo_id;
+
+                SET @asignacion_exitosa = TRUE;
+                LEAVE read_loop;
+            END LOOP;
+            CLOSE cur_linea_montaje;
+
+            -- Si después de recorrer todas las líneas de montaje no se realizó una asignación exitosa
+            IF NOT @asignacion_exitosa THEN
+                SET p_nResultado = -9;
+                SET p_cMensaje = 'No se pudo encontrar una línea de montaje para el modelo del vehículo.';
+            END IF;
+        END IF;
+    END IF;
+END;
+
+
+&& DELIMITER 
