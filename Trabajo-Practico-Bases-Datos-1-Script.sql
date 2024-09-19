@@ -1606,3 +1606,145 @@ BEGIN
 END
 
 && DELIMITER
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Producto vehiculo
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_producto_vehiculo`(
+    IN p_producto_id INT,
+    IN p_modelo_id INT,
+    IN p_cantidad INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+    DECLARE v_count_producto_id INT;
+    DECLARE v_count_modelo_id INT;
+    
+	SET p_nResultado = 0;
+	SET p_cMensaje = '';
+
+    -- Verificar si la relación ya existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.producto_vehiculo
+    WHERE producto_id = p_producto_id AND modelo_id = p_modelo_id;
+    
+	SELECT COUNT(*) INTO v_count_producto_id
+    FROM tp_fabrica_automovil_bd1.producto
+    WHERE producto_id = p_producto_id;
+	
+    SELECT COUNT(*) INTO v_count_modelo_id
+    FROM tp_fabrica_automovil_bd1.modelo
+    WHERE modelo_id = p_modelo_id;
+
+    IF v_count > 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La relación producto-vehículo-proveedor ya existe.';
+	ELSEIF v_count_modelo_id = 0 THEN
+		SET p_nResultado = -2;
+        SET p_cMensaje = 'El modelo no existe';
+	ELSEIF v_count_producto_id = 0 THEN
+		SET p_nResultado = -3;
+        SET p_cMensaje = 'El producto no existe';
+    ELSE
+        INSERT INTO tp_fabrica_automovil_bd1.producto_vehiculo (producto_id, modelo_id, cantidad)
+        VALUES (p_producto_id, p_modelo_id, p_cantidad);
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_producto_vehiculo`(
+    IN p_producto_id INT,
+    IN p_modelo_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la relación existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.producto_vehiculo
+    WHERE producto_id = p_producto_id AND modelo_id = p_modelo_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La relación producto-vehículo-proveedor no existe.';
+    ELSE
+        -- Eliminar relación
+        DELETE FROM tp_fabrica_automovil_bd1.producto_vehiculo
+        WHERE producto_id = p_producto_id AND modelo_id = p_modelo_id;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_producto_vehiculo`(
+    IN p_producto_id INT,
+    IN p_modelo_id INT,
+    IN p_cantidad INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+	DECLARE v_count_producto_id INT;
+    DECLARE v_count_modelo_id INT;
+    
+	SET p_nResultado = 0;
+	SET p_cMensaje = '';
+
+    -- Verificar si la relación existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.producto_vehiculo
+    WHERE producto_id = p_producto_id AND modelo_id = p_modelo_id;
+    
+	SELECT COUNT(*) INTO v_count_producto_id
+    FROM tp_fabrica_automovil_bd1.producto
+    WHERE producto_id = p_producto_id;
+    
+	SELECT COUNT(*) INTO v_count_modelo_id
+    FROM tp_fabrica_automovil_bd1.modelo
+    WHERE modelo_id = p_modelo_id;
+    
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La relación producto-vehículo no existe.';
+	ELSEIF v_count_producto_id = 0 THEN
+		SET p_nResultado = -2;
+        SET p_cMensaje = 'El producto no existe.';
+    ELSEIF v_count_modelo_id = 0 THEN
+		SET p_nResultado = -3;
+        SET p_cMensaje = 'El modelo no existe.';
+    ELSE 
+		UPDATE producto_vehiculo SET producto_id = p_producto_id, modelo_id = p_modelo_id, cantidad = p_cantidad WHERE producto_id = p_producto_id AND modelo_id = p_modelo_id;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
