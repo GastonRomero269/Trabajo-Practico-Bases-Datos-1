@@ -3868,3 +3868,18 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `calcular_costo_vehiculo`(vehiculo_id INT) RETURNS double
+    DETERMINISTIC
+BEGIN
+    DECLARE costo_total DOUBLE;
+    SELECT SUM(pp.precio) INTO costo_total
+    FROM producto_vehiculo pv
+    INNER JOIN producto_proveedor pp ON pv.producto_id = pp.producto_id
+    WHERE pv.vehiculo_id = vehiculo_id;
+    RETURN costo_total;
+END
+
+&& DELIMITER 
