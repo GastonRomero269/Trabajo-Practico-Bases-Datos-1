@@ -1363,3 +1363,129 @@ BEGIN
 END
 
 && DELIMITER
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Producto
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_producto`(
+    IN p_nombre VARCHAR(40),
+    IN p_descripcion VARCHAR(80),
+    IN p_fabrica_automovil_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la fábrica de automóviles existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.fabrica_automovil
+    WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La fábrica de automóviles no existe.';
+    ELSE
+        -- Insertar nuevo producto
+        INSERT INTO tp_fabrica_automovil_bd1.producto (nombre, descripcion, fabrica_automovil_id)
+        VALUES (p_nombre, p_descripcion, p_fabrica_automovil_id);
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_producto`(
+    IN p_producto_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el producto existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.producto
+    WHERE producto_id = p_producto_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El producto no existe.';
+    ELSE
+        -- Eliminar producto
+        DELETE FROM tp_fabrica_automovil_bd1.producto
+        WHERE producto_id = p_producto_id;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_producto`(
+    IN p_producto_id INT,
+    IN p_nombre VARCHAR(40),
+    IN p_descripcion VARCHAR(80),
+    IN p_fabrica_automovil_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el producto existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.producto
+    WHERE producto_id = p_producto_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El producto no existe.';
+    ELSE
+        -- Verificar si la fábrica de automóviles existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.fabrica_automovil
+        WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+        IF v_count = 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'La fábrica de automóviles no existe.';
+        ELSE
+            -- Actualizar producto
+            UPDATE tp_fabrica_automovil_bd1.producto
+            SET nombre = p_nombre,
+                descripcion = p_descripcion,
+                fabrica_automovil_id = p_fabrica_automovil_id
+            WHERE producto_id = p_producto_id;
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
