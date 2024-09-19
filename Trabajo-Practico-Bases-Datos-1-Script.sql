@@ -4123,3 +4123,27 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE TRIGGER actualizar_estado_primer_estacion_libre
+AFTER UPDATE ON tp_fabrica_automovil_bd1.estacion_trabajo
+FOR EACH ROW
+BEGIN
+    DECLARE v_primer_estacion_id INT;
+
+    -- Obtener el ID de la primera estación de la línea de montaje
+    SELECT MIN(estacion_trabajo_id) INTO v_primer_estacion_id
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo
+    WHERE linea_montaje_id = OLD.linea_montaje_id;
+
+    -- Verificar si el vehiculo_id pasó de NOT NULL a NULL y si es la primera estación de trabajo
+    IF OLD.vehiculo_id IS NOT NULL AND NEW.vehiculo_id IS NULL 
+        AND NEW.estacion_trabajo_id = v_primer_estacion_id THEN
+        UPDATE tp_fabrica_automovil_bd1.linea_montaje
+        SET estado = 'Libre'
+        WHERE linea_montaje_id = NEW.linea_montaje_id;
+    END IF;
+END 
+
+&& DELIMITER
