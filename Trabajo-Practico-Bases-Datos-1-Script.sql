@@ -1152,3 +1152,214 @@ BEGIN
 END
 
 && DELIMITER
+
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Pedido detalle
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_pedido_detalle`(
+    IN p_pedido_id INT,
+    IN p_vehiculo_modelo VARCHAR(40),
+    IN p_cantidad INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+    DECLARE v_modelo_id INT;
+    DECLARE v_precio_vehiculo DOUBLE;
+    DECLARE v_total_actual DOUBLE;
+    DECLARE v_total_nuevo DOUBLE;
+    DECLARE v_total_dias INT DEFAULT 0;
+    DECLARE v_fecha_entrega_pedido DATETIME;
+    DECLARE v_fecha_entrega_pedido_detalle DATETIME;
+    DECLARE v_cantidad_pedidos_entregados INT;
+    DECLARE v_cantidad_dias_porcentaje INT;
+    DECLARE v_precio_modelo DOUBLE;
+    
+	-- Establecer el resultado y mensaje
+	SET p_nResultado = 0;
+	SET p_cMensaje = '';
+
+    -- Verificar si el pedido existe
+    SELECT pedido_id INTO v_count
+    FROM tp_fabrica_automovil_bd1.pedido
+    WHERE pedido_id = p_pedido_id;
+    
+	-- Obtener el modelo_id del vehículo
+	SELECT modelo_id INTO v_modelo_id 
+	FROM tp_fabrica_automovil_bd1.modelo 
+	WHERE modelo = p_vehiculo_modelo;
+
+    IF v_count IS NULL THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El pedido no existe.';
+	ELSEIF v_modelo_id IS NULL THEN
+        SET p_nResultado = -2;
+        SET p_cMensaje = 'El modelo no existe.';
+    ELSE
+		SET v_precio_modelo = obtener_precio_por_modelo(v_modelo_id);
+        
+		IF v_precio_modelo = 10000.00 THEN
+			SET p_nResultado = -3;
+			SET p_cMensaje = 'El modelo tiene precio generico.';
+		END IF;
+        
+		-- Obtener el precio del vehículo basado en el modelo_id
+		SET v_precio_vehiculo = obtener_precio_por_modelo(v_modelo_id);
+		
+		-- Insertar el detalle del pedido
+		INSERT INTO tp_fabrica_automovil_bd1.pedido_detalle (estado, total, cantidad, modelo_id, pedido_id) 
+		VALUES ('Recibido', p_cantidad * v_precio_vehiculo, p_cantidad, v_modelo_id, p_pedido_id);
+		
+		-- Obtener el total actual del pedido
+		SELECT COALESCE(total, 0) INTO v_total_actual
+		FROM tp_fabrica_automovil_bd1.pedido
+		WHERE pedido_id = p_pedido_id;
+
+		-- Calcular el nuevo total del pedido
+		SET v_total_nuevo = v_total_actual + (p_cantidad * v_precio_vehiculo);
+
+		-- Actualizar el total del pedido
+		UPDATE tp_fabrica_automovil_bd1.pedido 
+		SET total = v_total_nuevo
+		WHERE pedido_id = p_pedido_id;
+
+		-- Obtener el tiempo de construcción total para el modelo
+		SET v_total_dias = calcular_tiempo_construccion(v_modelo_id) + 7;
+		
+		-- Calcular la fecha de entrega del pedido detalle
+		SET v_fecha_entrega_pedido_detalle = DATE_ADD(CURDATE(), INTERVAL v_total_dias DAY);
+
+		-- Obtener la fecha de entrega estimada actual del pedido
+		SELECT fecha_entrega_estimada INTO v_fecha_entrega_pedido
+		FROM tp_fabrica_automovil_bd1.pedido
+		WHERE pedido_id = p_pedido_id;
+
+		SELECT COUNT(*) INTO v_cantidad_pedidos_entregados
+		FROM tp_fabrica_automovil_bd1.pedido
+		WHERE fecha_entrega_estimada > CURDATE();
+		
+		IF v_cantidad_pedidos_entregados > 0 THEN
+			SET v_cantidad_dias_porcentaje = (((v_total_dias * 50) / 100) * v_cantidad_pedidos_entregados-1) + v_total_dias;
+			SET v_fecha_entrega_pedido_detalle = DATE_ADD(CURDATE(), INTERVAL v_cantidad_dias_porcentaje DAY);
+		END IF;
+
+		-- Actualizar la fecha de entrega estimada si es necesario
+		IF v_fecha_entrega_pedido_detalle > v_fecha_entrega_pedido THEN
+			UPDATE tp_fabrica_automovil_bd1.pedido 
+			SET fecha_entrega_estimada = v_fecha_entrega_pedido_detalle
+			WHERE pedido_id = p_pedido_id;
+		END IF;
+        
+    END IF;
+
+    -- Retornar el mensaje
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+-- DROP PROCEDURE `sp_alta_pedido_detalle`;
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_pedido_detalle`(
+    IN p_pedido_detalle_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el detalle de pedido existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.pedido_detalle
+    WHERE pedido_detalle_id = p_pedido_detalle_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El detalle de pedido no existe.';
+    ELSE
+        -- Eliminar detalle de pedido
+        DELETE FROM tp_fabrica_automovil_bd1.pedido_detalle
+        WHERE pedido_detalle_id = p_pedido_detalle_id;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_pedido_detalle`(
+    IN p_pedido_detalle_id INT,
+	IN p_estado VARCHAR(50),
+    IN p_total DOUBLE,
+	IN p_cantidad INT,
+    IN p_modelo_id INT,
+    IN p_pedido_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+    DECLARE v_count_modelo_id INT;
+
+    -- Verificar si el detalle de pedido existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.pedido_detalle
+    WHERE pedido_detalle_id = p_pedido_detalle_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El detalle de pedido no existe.';
+    ELSE
+        -- Verificar si el pedido existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.pedido
+        WHERE pedido_id = p_pedido_id;
+        
+		SELECT modelo_id INTO v_count_modelo_id
+        FROM tp_fabrica_automovil_bd1.modelo m
+        WHERE m.modelo_id = p_modelo_id;
+
+        IF v_count = 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'El pedido no existe.';
+        ELSEIF v_count_modelo_id = 0 THEN
+			SET p_nResultado = -3;
+            SET p_cMensaje = 'El modelo no existe.';
+        ELSE 
+			-- Actualizar detalle de pedido
+			UPDATE tp_fabrica_automovil_bd1.pedido_detalle
+			SET cantidad = p_cantidad,
+				estado = p_estado,
+				total = p_total,
+				pedido_id = p_pedido_id
+			WHERE pedido_detalle_id = p_pedido_detalle_id;
+
+			SET p_nResultado = 0;
+			SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
