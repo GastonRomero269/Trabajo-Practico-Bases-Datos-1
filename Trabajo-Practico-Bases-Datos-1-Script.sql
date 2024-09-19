@@ -4200,3 +4200,54 @@ BEGIN
 END 
 
 && DELIMITER 
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Views
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE VIEW vw_vehiculos_pedido AS
+SELECT 
+	pd.pedido_id,
+	pd.pedido_detalle_id,
+    v.vehiculo_id,
+    m.modelo,
+    v.precio,
+    pd.cantidad
+FROM 
+    tp_fabrica_automovil_bd1.vehiculo v
+JOIN 
+    tp_fabrica_automovil_bd1.pedido_detalle pd ON pd.pedido_detalle_id = v.pedido_detalle_id
+JOIN tp_fabrica_automovil_bd1.modelo m ON m.modelo_id = v.modelo_id;
+
+&& DELIMITER 
+
+DELIMITER &&
+
+CREATE VIEW vw_vehiculos_en_montaje AS
+SELECT 
+    pd.pedido_id AS NumeroPedido,
+    pd.pedido_detalle_id AS NumeroPedidoDetalle,
+    v.numero_chasis AS chasis,
+    CASE 
+        WHEN v.fecha_egreso IS NOT NULL THEN 'Finalizado'
+        ELSE 
+            COALESCE(
+                CONCAT('En estación: ', 
+                GROUP_CONCAT(et.estacion_trabajo_id SEPARATOR ', ')), 
+                'No asignado a ninguna estación'
+            )
+    END AS estado
+FROM 
+    tp_fabrica_automovil_bd1.pedido_detalle pd
+JOIN 
+    tp_fabrica_automovil_bd1.vehiculo v ON pd.pedido_detalle_id = v.pedido_detalle_id
+LEFT JOIN 
+    tp_fabrica_automovil_bd1.estacion_trabajo et ON v.vehiculo_id = et.vehiculo_id
+GROUP BY 
+    pd.pedido_id, pd.pedido_detalle_id, v.numero_chasis, v.fecha_egreso;
+
+&& DELIMITER 
