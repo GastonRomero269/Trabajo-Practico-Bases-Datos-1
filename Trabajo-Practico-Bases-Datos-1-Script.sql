@@ -4305,3 +4305,33 @@ GROUP BY
     lm.linea_montaje_id;
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE VIEW vw_cantidades_producto_pedido AS
+SELECT 
+    pd.pedido_id AS PedidoID,
+    SUM(CASE WHEN p.nombre = 'Chasis' THEN pv.cantidad ELSE 0 END) AS Chasis,
+    SUM(CASE WHEN p.nombre = 'Motor' THEN pv.cantidad ELSE 0 END) AS Motor,
+    SUM(CASE WHEN p.nombre = 'Sistema de transmision' THEN pv.cantidad ELSE 0 END) AS SistemaTransmision,
+    SUM(CASE WHEN p.nombre = 'Sistema de suspension' THEN pv.cantidad ELSE 0 END) AS SistemaSuspension,
+    SUM(CASE WHEN p.nombre = 'Sistema de frenos' THEN pv.cantidad ELSE 0 END) AS SistemaFrenos,
+    SUM(CASE WHEN p.nombre = 'Sistema de direccion' THEN pv.cantidad ELSE 0 END) AS SistemaDireccion,
+    SUM(CASE WHEN p.nombre = 'Sistema de escape' THEN pv.cantidad ELSE 0 END) AS SistemaEscape,
+    SUM(CASE WHEN p.nombre = 'Sistema electrico' THEN pv.cantidad ELSE 0 END) AS SistemaElectrico,
+    SUM(CASE WHEN p.nombre = 'Interior' THEN pv.cantidad ELSE 0 END) AS Interior,
+    SUM(CASE WHEN p.nombre = 'Carroceria' THEN pv.cantidad ELSE 0 END) AS Carroceria,
+    SUM(CASE WHEN p.nombre = 'Cristales' THEN pv.cantidad ELSE 0 END) AS Cristales,
+    SUM(CASE WHEN p.nombre = 'Pintura' THEN pv.cantidad ELSE 0 END) AS Pintura
+FROM 
+    tp_fabrica_automovil_bd1.pedido_detalle pd
+JOIN 
+    tp_fabrica_automovil_bd1.vehiculo v ON pd.pedido_detalle_id = v.pedido_detalle_id
+JOIN 
+    tp_fabrica_automovil_bd1.producto_vehiculo pv ON pv.modelo_id = v.modelo_id
+JOIN 
+    tp_fabrica_automovil_bd1.producto p ON p.producto_id = pv.producto_id
+GROUP BY 
+    pd.pedido_id;
+
+&& DELIMITER ;
