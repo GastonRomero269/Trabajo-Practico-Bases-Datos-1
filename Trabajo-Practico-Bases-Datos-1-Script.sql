@@ -2684,3 +2684,143 @@ BEGIN
 END
 
 && DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `generar_productos_para_modelo`(
+    IN p_modelo VARCHAR(50),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_linea_montaje_id INT;
+    DECLARE v_producto_id INT;
+    DECLARE v_cantidad_requerida INT;
+    DECLARE v_cantidad_final INT;
+    DECLARE v_modelo_id INT;
+    
+    DECLARE v_producto_id_1 INT;
+    DECLARE v_producto_id_2 INT;
+    DECLARE v_producto_id_3 INT;
+    DECLARE v_producto_id_4 INT;
+    DECLARE v_producto_id_5 INT;
+    DECLARE v_producto_id_6 INT;
+    DECLARE v_producto_id_7 INT;
+	DECLARE v_producto_id_8 INT;
+	DECLARE v_producto_id_9 INT;
+	DECLARE v_producto_id_10 INT;
+	DECLARE v_producto_id_11 INT;
+	DECLARE v_producto_id_12 INT;
+    
+    SELECT producto_id INTO v_producto_id_1 FROM producto p WHERE p.nombre = 'Chasis';
+    SELECT producto_id INTO v_producto_id_2 FROM producto p WHERE p.nombre = 'Motor';
+    SELECT producto_id INTO v_producto_id_3 FROM producto p WHERE p.nombre = 'Sistema de transmision';
+    SELECT producto_id INTO v_producto_id_4 FROM producto p WHERE p.nombre = 'Sistema de suspension';
+    SELECT producto_id INTO v_producto_id_5 FROM producto p WHERE p.nombre = 'Sistema de frenos';
+    SELECT producto_id INTO v_producto_id_6 FROM producto p WHERE p.nombre = 'Sistema de direccion';
+    SELECT producto_id INTO v_producto_id_7 FROM producto p WHERE p.nombre = 'Sistema de escape';
+    SELECT producto_id INTO v_producto_id_8 FROM producto p WHERE p.nombre = 'Sistema electrico';
+    SELECT producto_id INTO v_producto_id_9 FROM producto p WHERE p.nombre = 'Interior';
+    SELECT producto_id INTO v_producto_id_10 FROM producto p WHERE p.nombre = 'Carroceria';
+    SELECT producto_id INTO v_producto_id_11 FROM producto p WHERE p.nombre = 'Cristales';
+    SELECT producto_id INTO v_producto_id_12 FROM producto p WHERE p.nombre = 'Pintura';
+    
+	-- Finalización exitosa
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+    
+	SELECT modelo_id INTO v_modelo_id FROM tp_fabrica_automovil_bd1.modelo m WHERE m.modelo = p_modelo;
+    SELECT linea_montaje_id INTO v_linea_montaje_id FROM tp_fabrica_automovil_bd1.linea_montaje lm WHERE lm.modelo_id = v_modelo_id;
+	
+    IF v_modelo_id IS NULL THEN
+		SET p_nResultado = -1;
+        SET p_cMensaje = 'El modelo no existe.';
+    ELSEIF v_linea_montaje_id IS NULL THEN
+        SET p_nResultado = -2;
+        SET p_cMensaje = 'La linea de montaje no existe.';
+	ELSE 
+    	-- Aplicar lógica según el modelo con CASE
+		CASE p_modelo
+		
+			WHEN 'Renault 12' THEN
+				CALL sp_alta_producto_vehiculo(v_producto_id_1, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_2, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_3, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_4, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_5, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_6, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_7, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_8, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_9, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_10, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_11, v_modelo_id, 6, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_12, v_modelo_id, 15, @nResultado, @cMensaje);
+                
+			WHEN 'Toyota Corolla' THEN
+				CALL sp_alta_producto_vehiculo(v_producto_id_1, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_2, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_3, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_4, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_5, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_6, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_7, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_8, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_9, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_10, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_11, v_modelo_id, 6, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_12, v_modelo_id, 20, @nResultado, @cMensaje);
+				
+			WHEN 'Honda Civic' THEN 
+				CALL sp_alta_producto_vehiculo(v_producto_id_1, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_2, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_3, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_4, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_5, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_6, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_7, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_8, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_9, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_10, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_11, v_modelo_id, 6, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_12, v_modelo_id, 25, @nResultado, @cMensaje);
+
+			WHEN 'Ford Mustang' THEN 
+				CALL sp_alta_producto_vehiculo(v_producto_id_1, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_2, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_3, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_4, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_5, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_6, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_7, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_8, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_9, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_10, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_11, v_modelo_id, 6, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_12, v_modelo_id, 30, @nResultado, @cMensaje);
+				
+			WHEN 'Chevrolet Camaro' THEN 
+				CALL sp_alta_producto_vehiculo(v_producto_id_1, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_2, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_3, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_4, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_5, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_6, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_7, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_8, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_9, v_modelo_id, 1, @nResultado, @cMensaje);
+				CALL sp_alta_producto_vehiculo(v_producto_id_10, v_modelo_id, 1, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_11, v_modelo_id, 6, @nResultado, @cMensaje);
+                CALL sp_alta_producto_vehiculo(v_producto_id_12, v_modelo_id, 40, @nResultado, @cMensaje);
+				
+			ELSE
+				SET p_nResultado = -1;
+                SET p_cMensaje = CONCAT("Cuidado con el modelo_id = ", v_modelo_id, ", no se le asignaron productos");
+		END CASE;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
