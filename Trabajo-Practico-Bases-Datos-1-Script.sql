@@ -4147,3 +4147,56 @@ BEGIN
 END 
 
 && DELIMITER
+
+DELIMITER &&
+
+CREATE TRIGGER actualizar_fecha_entrega_estimada
+AFTER UPDATE ON tp_fabrica_automovil_bd1.vehiculo
+FOR EACH ROW
+BEGIN
+    DECLARE v_pedido_id INT;
+    DECLARE v_fecha_entrega_estimada DATETIME;
+    DECLARE v_total_vehiculos INT;
+    DECLARE v_vehiculos_finalizados INT;
+
+    -- Verificar si el vehículo ha sido finalizado (fecha_egreso pasa de NULL a NO NULL)
+    IF OLD.fecha_egreso IS NULL AND NEW.fecha_egreso IS NOT NULL THEN
+        -- Obtener el ID del pedido al que pertenece el vehículo
+        SELECT pd.pedido_id
+        INTO v_pedido_id
+        FROM tp_fabrica_automovil_bd1.pedido_detalle pd
+        WHERE pd.pedido_detalle_id = NEW.pedido_detalle_id
+        LIMIT 1;
+
+        -- Contar el número total de vehículos del pedido
+        SELECT COUNT(*)
+        INTO v_total_vehiculos
+        FROM tp_fabrica_automovil_bd1.vehiculo v
+        JOIN tp_fabrica_automovil_bd1.pedido_detalle pd ON v.pedido_detalle_id = pd.pedido_detalle_id
+        WHERE pd.pedido_id = v_pedido_id;
+
+        -- Contar el número de vehículos finalizados del pedido
+        SELECT COUNT(*)
+        INTO v_vehiculos_finalizados
+        FROM tp_fabrica_automovil_bd1.vehiculo v
+        JOIN tp_fabrica_automovil_bd1.pedido_detalle pd ON v.pedido_detalle_id = pd.pedido_detalle_id
+        WHERE pd.pedido_id = v_pedido_id AND v.fecha_egreso IS NOT NULL;
+
+        -- Si todos los vehículos del pedido han sido finalizados
+        IF v_total_vehiculos = v_vehiculos_finalizados THEN
+            -- Obtener la fecha de egreso del último vehículo
+            SELECT MAX(NEW.fecha_egreso)
+            INTO v_fecha_entrega_estimada
+            FROM tp_fabrica_automovil_bd1.vehiculo v
+            JOIN tp_fabrica_automovil_bd1.pedido_detalle pd ON v.pedido_detalle_id = pd.pedido_detalle_id
+            WHERE pd.pedido_id = v_pedido_id;
+
+            -- Actualizar la fecha de entrega estimada del pedido
+            UPDATE tp_fabrica_automovil_bd1.pedido
+            SET fecha_entrega_estimada = v_fecha_entrega_estimada
+            WHERE pedido_id = v_pedido_id;
+        END IF;
+    END IF;
+END 
+
+&& DELIMITER 
