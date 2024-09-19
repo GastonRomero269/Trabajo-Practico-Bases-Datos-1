@@ -2165,3 +2165,139 @@ END
 
 && DELIMITER
 
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Estacion trabajo vehiculo
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_estacion_trabajo_vehiculo`(
+    IN p_estacion_trabajo_id INT,
+    IN p_vehiculo_id INT,
+    IN p_fecha_ingreso DATE,
+    IN p_fecha_egreso DATE,
+    IN p_finalizado TINYINT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_estacion_trabajo_id INT;
+    DECLARE v_vehiculo_id INT;
+    
+	SET p_nResultado = 0;
+	SET p_cMensaje = '';
+
+    -- Verificar si ya existe el registro estacion_trabajo_vehiculo
+    SELECT COUNT(*) INTO v_estacion_trabajo_id
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo et
+    WHERE et.estacion_trabajo_id = p_estacion_trabajo_id;
+    
+	SELECT COUNT(*) INTO v_vehiculo_id
+    FROM tp_fabrica_automovil_bd1.vehiculo v
+    WHERE v.vehiculo_id = p_vehiculo_id;
+
+	IF v_estacion_trabajo_id = 0 THEN
+		SET p_nResultado = -1;
+		SET p_cMensaje = 'La estacion de trabajo no existe';
+    ELSEIF v_vehiculo_id = 0 THEN
+		SET p_nResultado = -2;
+		SET p_cMensaje = 'El vehiculo no existe';
+    ELSE 
+    	INSERT INTO tp_fabrica_automovil_bd1.estacion_trabajo_vehiculo (estacion_trabajo_id, vehiculo_id, fecha_ingreso, fecha_egreso, finalizado)
+		VALUES (p_estacion_trabajo_id, p_vehiculo_id, p_fecha_ingreso, p_fecha_egreso, p_finalizado);
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+
+END
+
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE PROCEDURE sp_baja_estacion_trabajo_vehiculo(
+    IN p_estacion_trabajo_id INT,
+    IN p_vehiculo_id INT,
+    OUT nResultado INT,
+    OUT cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_existente INT;
+
+    -- Verificar si el registro estacion_trabajo_vehiculo existe
+    SELECT COUNT(*) INTO v_existente
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo_vehiculo
+    WHERE estacion_trabajo_id = p_estacion_trabajo_id AND vehiculo_id = p_vehiculo_id;
+
+    IF v_existente = 0 THEN
+        SET nResultado = -1;
+        SET cMensaje = 'El registro de estacion_trabajo_vehiculo no existe.';
+    ELSE
+        DELETE FROM tp_fabrica_automovil_bd1.estacion_trabajo_vehiculo
+        WHERE estacion_trabajo_id = p_estacion_trabajo_id AND vehiculo_id = p_vehiculo_id;
+
+        SET nResultado = 0;
+        SET cMensaje = '';
+    END IF;
+END
+
+
+&& DELIMITER
+
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_estacion_trabajo_vehiculo`(
+    IN p_estacion_trabajo_id INT,
+    IN p_vehiculo_id INT,
+    IN p_fecha_ingreso DATE,
+    IN p_fecha_egreso DATE,
+    IN p_finalizado TINYINT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_estacion_trabajo_id INT;
+    DECLARE v_vehiculo_id INT;
+    
+	SET p_nResultado = 0;
+	SET p_cMensaje = '';
+
+    -- Verificar si ya existe el registro estacion_trabajo_vehiculo
+    SELECT COUNT(*) INTO v_estacion_trabajo_id
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo et
+    WHERE et.estacion_trabajo_id = p_estacion_trabajo_id;
+    
+	SELECT COUNT(*) INTO v_vehiculo_id
+    FROM tp_fabrica_automovil_bd1.vehiculo v
+    WHERE v.vehiculo_id = p_vehiculo_id;
+
+	IF v_estacion_trabajo_id = 0 THEN
+		SET p_nResultado = -1;
+		SET p_cMensaje = 'La estacion de trabajo no existe';
+    ELSEIF v_vehiculo_id = 0 THEN
+		SET p_nResultado = -2;
+		SET p_cMensaje = 'El vehiculo no existe';
+    ELSE 
+    	UPDATE tp_fabrica_automovil_bd1.estacion_trabajo_vehiculo etv
+		SET 
+			estacion_trabajo_id = p_estacion_trabajo_id, 
+            vehiculo_id = p_vehiculo_id, 
+            fecha_ingreso = p_fecha_ingreso, 
+            fecha_egreso = p_fecha_egreso, 
+            finalizado = p_finalizado
+		WHERE etv.vehiculo_id = p_vehiculo_id
+			AND etv.estacion_trabajo_id = p_estacion_trabajo_id;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
