@@ -4418,3 +4418,23 @@ SELECT *, @ultimo_concesionaria_id AS SelectUltimoConcesionariaId FROM concesion
 CALL sp_alta_concesionaria('Concesionaria 1', @ultimo_fabrica_automovil_id, @nResultado, @cMensaje);
 SET @ultimo_concesionaria_id = LAST_INSERT_ID();
 SELECT *, @ultimo_concesionaria_id AS SelectUltimoConcesionariaId FROM concesionaria;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Proveedor ABM
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_proveedor('Proveedor 1', @nResultado, @cMensaje);
+SET @ultimo_proveedor_id = LAST_INSERT_ID();
+SELECT *, @ultimo_proveedor_id AS SelectUltimoProveedorId FROM proveedor;
+
+CALL sp_modificacion_proveedor(@ultimo_proveedor_id, 'Proveedor 1 Modificacion', @nResultado, @cMensaje);
+SELECT *, @ultimo_proveedor_id AS SelectUltimoProveedorId FROM proveedor;
+
+CALL sp_baja_proveedor(@ultimo_proveedor_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_proveedor_id AS SelectUltimoProveedorId FROM proveedor;
+
+CALL sp_alta_proveedor('Proveedor 1', @nResultado, @cMensaje);
+SET @ultimo_proveedor_id = LAST_INSERT_ID();
+SELECT *, @ultimo_proveedor_id AS SelectUltimoProveedorId FROM proveedor;
