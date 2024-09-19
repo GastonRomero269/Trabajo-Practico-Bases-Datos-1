@@ -1748,3 +1748,133 @@ BEGIN
 END
 
 && DELIMITER
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Proveedor
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_proveedor`(
+    IN p_nombre VARCHAR(40),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el proveedor ya existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.proveedor
+    WHERE nombre = p_nombre;
+
+    IF v_count > 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El proveedor ya existe.';
+    ELSE
+        -- Insertar nuevo proveedor
+        INSERT INTO tp_fabrica_automovil_bd1.proveedor (nombre)
+        VALUES (p_nombre);
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_proveedor`(
+    IN p_proveedor_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el proveedor existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.proveedor
+    WHERE proveedor_id = p_proveedor_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El proveedor no existe.';
+    ELSE
+        -- Verificar si el proveedor está en uso en otras tablas
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.producto_proveedor
+        WHERE proveedor_id = p_proveedor_id;
+
+        IF v_count > 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'El proveedor no se puede eliminar porque está asociado a productos.';
+        ELSE
+            -- Eliminar proveedor
+            DELETE FROM tp_fabrica_automovil_bd1.proveedor
+            WHERE proveedor_id = p_proveedor_id;
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_proveedor`(
+    IN p_proveedor_id INT,
+    IN p_nombre VARCHAR(40),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el proveedor existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.proveedor
+    WHERE proveedor_id = p_proveedor_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El proveedor no existe.';
+    ELSE
+        -- Verificar si el nuevo nombre ya está en uso
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.proveedor
+        WHERE nombre = p_nombre AND proveedor_id != p_proveedor_id;
+
+        IF v_count > 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'El nombre del proveedor ya está en uso.';
+        ELSE
+            -- Actualizar proveedor
+            UPDATE tp_fabrica_automovil_bd1.proveedor
+            SET nombre = p_nombre
+            WHERE proveedor_id = p_proveedor_id;
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
