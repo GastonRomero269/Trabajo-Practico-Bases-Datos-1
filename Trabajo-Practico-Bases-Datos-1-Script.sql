@@ -3953,3 +3953,20 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `verificar_estado_vehiculo`(vehiculo_id INT) RETURNS VARCHAR(50) 
+    DETERMINISTIC
+BEGIN
+    DECLARE estado VARCHAR(50);
+    DECLARE fecha_egreso DATE;
+    SELECT fecha_egreso INTO fecha_egreso from vehiculo v WHERE v.vehiculo_id = vehiculo_id;
+	IF fecha_egreso IS NOT NULL THEN
+		RETURN 'No Finalizado';
+	ELSE 
+		RETURN 'Finalizado';
+    END IF;
+END
+
+&& DELIMITER 
