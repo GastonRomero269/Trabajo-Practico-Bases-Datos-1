@@ -3896,3 +3896,46 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `generar_patente_aleatoria_unica`() 
+RETURNS varchar(10) CHARSET utf8mb4
+    READS SQL DATA
+    DETERMINISTIC
+BEGIN
+    DECLARE v_numero_chasis VARCHAR(10);
+    DECLARE v_count INT;
+    DECLARE numero_chasis_unica BOOLEAN DEFAULT FALSE;
+
+    -- Bucle para generar un número de chasis único
+    WHILE NOT numero_chasis_unica DO
+        -- Generar un número de chasis aleatorio con dos letras, tres números, y dos letras más
+        SET v_numero_chasis = CONCAT(
+            CHAR(FLOOR(65 + RAND() * 26)), 
+            CHAR(FLOOR(65 + RAND() * 26)), 
+            ' ', 
+            FLOOR(RAND() * 10), 
+            FLOOR(RAND() * 10), 
+            FLOOR(RAND() * 10),
+            ' ',
+            CHAR(FLOOR(65 + RAND() * 26)), 
+            CHAR(FLOOR(65 + RAND() * 26))
+        );
+
+        -- Verificar si el número de chasis ya existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.vehiculo
+        WHERE numero_chasis = v_numero_chasis;
+        
+        -- Si el número de chasis no existe, marcar como único
+        IF v_count = 0 THEN
+            SET numero_chasis_unica = TRUE;
+        END IF;
+    END WHILE;
+    
+    RETURN v_numero_chasis;
+END;
+
+
+&& DELIMITER
