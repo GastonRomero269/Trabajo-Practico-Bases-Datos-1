@@ -4351,3 +4351,30 @@ CREATE INDEX idx_vehiculo_numero_chasis ON tp_fabrica_automovil_bd1.vehiculo (nu
 CREATE INDEX idx_vehiculo_fecha_finalizacion ON tp_fabrica_automovil_bd1.vehiculo (fecha_egreso);
 
 CREATE INDEX idx_estacion_trabajo_tarea ON tp_fabrica_automovil_bd1.estacion_trabajo (tarea);
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Prueba ABM
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Fabrica automovil ABM
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*
+CALL sp_alta_fabrica_automovil('Fabrica Automovil 1', @nResultado, @cMensaje);
+SET @ultimo_fabrica_automovil_id = LAST_INSERT_ID();
+SELECT *, @ultimo_fabrica_automovil_id AS SelectUltimoFabricaAutomovilId FROM fabrica_automovil;
+
+CALL sp_modificacion_fabrica_automovil(@ultimo_fabrica_automovil_id, 'Fabrica Automovil 1 Modificacion', @nResultado, @cMensaje);
+SELECT *, @ultimo_fabrica_automovil_id AS SelectUltimoFabricaAutomovilId FROM fabrica_automovil;
+
+CALL sp_baja_fabrica_automovil(@ultimo_fabrica_automovil_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_fabrica_automovil_id AS SelectUltimoFabricaAutomovilId FROM fabrica_automovil;
+
+CALL sp_alta_fabrica_automovil('Fabrica Automovil 1', @nResultado, @cMensaje);
+SET @ultimo_fabrica_automovil_id = LAST_INSERT_ID();
+SELECT *, @ultimo_fabrica_automovil_id AS SelectUltimoFabricaAutomovilId FROM fabrica_automovil;
