@@ -4560,3 +4560,23 @@ CALL sp_alta_linea_montaje(0, 'Libre', 0, "Modelo 2", @ultimo_fabrica_automovil_
 SELECT modelo_id INTO @ultimo_modelo_id FROM modelo m WHERE m.modelo = "Modelo 2";
 SELECT linea_montaje_id INTO @ultimo_linea_montaje_id FROM linea_montaje lm WHERE lm.modelo_id = @ultimo_modelo_id;
 SELECT *, @ultimo_linea_montaje_id AS SelectUltimoLineaMontajeId FROM linea_montaje;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Estacion trabajo ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			
+CALL sp_alta_estacion_trabajo('A', 1, 'Libre', @ultimo_linea_montaje_id, null, @nResultado, @cMensaje);
+SET @ultimo_estacion_trabajo_id = LAST_INSERT_ID();
+SELECT *, @ultimo_estacion_trabajo_id AS SelectUltimoEstacionTrabajoId FROM estacion_trabajo;
+
+CALL sp_modificacion_estacion_trabajo(@ultimo_estacion_trabajo_id, 'AAAAAAAAA', 1, 'Libre', @ultimo_linea_montaje_id, null, @nResultado, @cMensaje);
+SELECT *, @ultimo_estacion_trabajo_id AS SelectUltimoEstacionTrabajoId FROM estacion_trabajo;
+
+CALL sp_baja_estacion_trabajo(@ultimo_estacion_trabajo_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_estacion_trabajo_id AS SelectUltimoEstacionTrabajoId FROM estacion_trabajo;
+
+CALL sp_alta_estacion_trabajo('A', 1, 'Libre', @ultimo_linea_montaje_id, null, @nResultado, @cMensaje);
+SET @ultimo_estacion_trabajo_id = LAST_INSERT_ID();
+SELECT *, @ultimo_estacion_trabajo_id AS SelectUltimoEstacionTrabajoId FROM estacion_trabajo;
