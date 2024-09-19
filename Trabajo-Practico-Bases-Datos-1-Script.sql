@@ -4518,3 +4518,23 @@ SELECT * FROM producto_proveedor;
 CALL sp_alta_producto_proveedor(@ultimo_producto_id, @ultimo_proveedor_id, 100, 1, @nRespuesta, @cMensaje);
 SELECT producto_id, proveedor_id INTO @ultimo_producto_id, @ultimo_proveedor_id FROM producto_proveedor pp WHERE pp.producto_id = @ultimo_producto_id AND pp.proveedor_id = @ultimo_proveedor_id LIMIT 1;
 SELECT * FROM producto_proveedor;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Producto vehiculo ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_producto_vehiculo(@ultimo_producto_id, @ultimo_modelo_id, 100, @nRespuesta, @cMensaje);
+SELECT producto_id, modelo_id INTO @ultimo_producto_id, @ultimo_modelo_id FROM producto_vehiculo pv WHERE pv.producto_id = @ultimo_producto_id AND pv.modelo_id = @ultimo_modelo_id LIMIT 1;
+SELECT *, @ultimo_producto_id, @ultimo_modelo_id FROM producto_vehiculo;
+
+CALL sp_modificacion_producto_vehiculo(@ultimo_producto_id, @ultimo_modelo_id, 999, @nRespuesta, @cMensaje);
+SELECT * FROM producto_vehiculo;
+
+CALL sp_baja_producto_vehiculo(@ultimo_producto_id, @ultimo_modelo_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_producto_id, @ultimo_modelo_id FROM producto_vehiculo;
+
+CALL sp_alta_producto_vehiculo(@ultimo_producto_id, @ultimo_modelo_id, 100, @nRespuesta, @cMensaje);
+SELECT producto_id, modelo_id INTO @ultimo_producto_id, @ultimo_modelo_id FROM producto_vehiculo pv WHERE pv.producto_id = @ultimo_producto_id AND pv.modelo_id = @ultimo_modelo_id LIMIT 1;
+SELECT *, @ultimo_producto_id, @ultimo_modelo_id FROM producto_vehiculo;
