@@ -4078,3 +4078,15 @@ BEGIN
 END
 
 && DELIMITER
+
+DELIMITER &&
+
+CREATE TRIGGER incrementar_vehiculos_linea_montaje
+AFTER INSERT ON tp_fabrica_automovil_bd1.vehiculo
+FOR EACH ROW
+BEGIN
+    -- Verificar si la línea de montaje cambió de NULL a algún valor
+	UPDATE tp_fabrica_automovil_bd1.linea_montaje
+	SET cantidad_vehiculos_actual = cantidad_vehiculos_actual + 1
+	WHERE linea_montaje_id = NEW.linea_montaje_id;
+END;
