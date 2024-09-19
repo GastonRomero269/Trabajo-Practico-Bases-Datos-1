@@ -798,3 +798,164 @@ BEGIN
 END
 
 && DELIMITER
+
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Linea montaje
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_linea_montaje`(
+    IN p_capacidad_productiva_promedio DOUBLE,
+    IN p_estado VARCHAR(50),
+    IN p_cantidad_vehiculos_actual INT,
+    IN p_modelo VARCHAR(50),
+    IN p_fabrica_automovil_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si la fábrica de automóviles existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.fabrica_automovil
+    WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La fábrica de automóviles no existe.';
+    ELSE
+		CALL sp_alta_modelo(p_modelo, p_nResultado, p_cMensaje);
+		SELECT modelo_id INTO @v_modelo_id FROM tp_fabrica_automovil_bd1.modelo m WHERE m.modelo = p_modelo;
+    
+		IF p_nResultado = 0 THEN
+        
+			-- Insertar nueva línea de montaje
+			INSERT INTO tp_fabrica_automovil_bd1.linea_montaje (capacidad_productiva_promedio, estado, cantidad_vehiculos_actual, modelo_id, fabrica_automovil_id) 
+			VALUES (p_capacidad_productiva_promedio, p_estado, p_cantidad_vehiculos_actual, @v_modelo_id, p_fabrica_automovil_id);
+			
+			SET @v_linea_montaje_id = LAST_INSERT_ID(); 
+            CALL asignar_estaciones_trabajo(@v_linea_montaje_id, p_nResultado, p_cMensaje);
+            
+			CALL generar_productos_para_modelo(p_modelo, p_nResultado, p_cMensaje);
+            
+			SET p_nResultado = 0;
+			SET p_cMensaje = '';
+        END IF;
+	
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_linea_montaje`(
+    IN p_linea_montaje_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+    DECLARE v_modelo_id INT;
+
+    -- Verificar si la línea de montaje existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.linea_montaje
+    WHERE linea_montaje_id = p_linea_montaje_id;
+    
+	SELECT modelo_id INTO v_modelo_id
+    FROM tp_fabrica_automovil_bd1.linea_montaje
+    WHERE linea_montaje_id = p_linea_montaje_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La línea de montaje no existe.';
+    ELSE
+        -- Eliminar línea de montaje
+        DELETE FROM tp_fabrica_automovil_bd1.linea_montaje
+        WHERE linea_montaje_id = p_linea_montaje_id;
+        
+        CALL sp_baja_modelo(v_modelo_id, p_nResultado, p_cMensaje);
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_linea_montaje`(
+    IN p_linea_montaje_id INT,
+    IN p_capacidad_productiva_promedio DOUBLE,
+    IN p_estado VARCHAR(50),
+    IN p_cantidad_vehiculos_actual INT,
+    IN p_modelo_id INT,
+    IN p_fabrica_automovil_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+    DECLARE v_count_modelo_id INT;
+
+    -- Verificar si la línea de montaje existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.linea_montaje
+    WHERE linea_montaje_id = p_linea_montaje_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La línea de montaje no existe.';
+    ELSE
+        -- Verificar si la fábrica de automóviles existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.fabrica_automovil
+        WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+        
+        SELECT COUNT(*) INTO v_count_modelo_id
+        FROM tp_fabrica_automovil_bd1.modelo m
+        WHERE m.modelo_id = p_modelo_id;
+
+        IF v_count = 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'La fábrica de automóviles no existe.';
+		ELSEIF v_count_modelo_id = 0 THEN
+			SET p_nResultado = -3;
+            SET p_cMensaje = 'El modelo no existe.';
+        ELSE
+            -- Actualizar línea de montaje
+            UPDATE tp_fabrica_automovil_bd1.linea_montaje
+            SET capacidad_productiva_promedio = p_capacidad_productiva_promedio,
+                estado = p_estado,
+                cantidad_vehiculos_actual = p_cantidad_vehiculos_actual,
+                modelo_id = p_modelo_id,
+                fabrica_automovil_id = p_fabrica_automovil_id
+            WHERE linea_montaje_id = p_linea_montaje_id;
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
