@@ -3707,3 +3707,124 @@ BEGIN
 END
 
 && DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `asignar_estaciones_trabajo`(
+    IN p_linea_montaje_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_demora_dias_estimada INT;
+    DECLARE v_modelo_id INT;
+    DECLARE v_modelo VARCHAR(50);
+    DECLARE v_linea_montaje_id INT;
+    
+	-- Si todas las llamadas fueron exitosas
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+	
+    SELECT linea_montaje_id INTO v_linea_montaje_id FROM tp_fabrica_automovil_bd1.linea_montaje lm WHERE lm.linea_montaje_id = p_linea_montaje_id;
+	SELECT modelo_id INTO v_modelo_id FROM tp_fabrica_automovil_bd1.linea_montaje lm WHERE lm.linea_montaje_id = p_linea_montaje_id;
+	SELECT modelo INTO v_modelo FROM tp_fabrica_automovil_bd1.modelo m WHERE m.modelo_id = v_modelo_id;
+		
+	IF v_linea_montaje_id IS NULL THEN
+		SET p_nResultado = -1;
+		SET p_cMensaje = 'La linea de montaje no existe';
+	ELSEIF v_modelo_id IS NULL THEN
+        SET p_nResultado = -2;
+		SET p_cMensaje = 'El modelo no existe';
+    ELSE 
+		-- Aplicar lógica según el modelo con CASE
+		CASE v_modelo
+		
+			WHEN 'Renault 12' THEN
+				CALL sp_alta_estacion_trabajo('Montaje de chasis', 2, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del motor', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje de transmisión', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de suspensión', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de frenos', 5, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema de dirección', 6, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de escape', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema eléctrico', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del interior', 6, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de la carrocería', 9, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de los cristales', 2, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Pintura', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Inspección y pruebas de calidad', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				
+			WHEN 'Toyota Corolla' THEN
+				CALL sp_alta_estacion_trabajo('Montaje de chasis', 9, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del motor', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje de transmisión', 2, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de suspensión', 6, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de frenos', 7, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema de dirección', 2, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de escape', 6, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema eléctrico', 5, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del interior', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de la carrocería', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de los cristales', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Pintura', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Inspección y pruebas de calidad', 8, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				
+			WHEN 'Honda Civic' THEN 
+				CALL sp_alta_estacion_trabajo('Montaje de chasis', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del motor', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje de transmisión', 6, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de suspensión', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de frenos', 2, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema de dirección', 7, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de escape', 5, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema eléctrico', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del interior', 8, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de la carrocería', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de los cristales', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Pintura', 6, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Inspección y pruebas de calidad', 8, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+
+			WHEN 'Ford Mustang' THEN 
+				CALL sp_alta_estacion_trabajo('Montaje de chasis', 2, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del motor', 5, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje de transmisión', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de suspensión', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de frenos', 6, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema de dirección', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de escape', 8, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema eléctrico', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del interior', 5, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de la carrocería', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de los cristales', 9, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Pintura', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Inspección y pruebas de calidad', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				
+			WHEN 'Chevrolet Camaro' THEN 
+				CALL sp_alta_estacion_trabajo('Montaje de chasis', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del motor', 2, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje de transmisión', 5, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de suspensión', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de frenos', 8, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema de dirección', 7, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación del sistema de escape', 9, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del sistema eléctrico', 1, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Montaje del interior', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de la carrocería', 3, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Instalación de los cristales', 2, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Pintura', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				CALL sp_alta_estacion_trabajo('Inspección y pruebas de calidad', 4, 'Libre', p_linea_montaje_id, null, p_nResultado, p_cMensaje);
+				
+			ELSE
+				SET p_nResultado = -1;
+				SET p_cMensaje = CONCAT("Cuidado con el modelo_id = ", v_modelo_id, " y linea_montaje_id = ", p_linea_montaje_id, ", no se le asignaron estaciones de trabajo");
+	
+		END CASE;
+    
+    END IF;
+
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER 
