@@ -4335,3 +4335,19 @@ GROUP BY
     pd.pedido_id;
 
 && DELIMITER ;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- INDEX
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE INDEX idx_producto_nombre ON tp_fabrica_automovil_bd1.producto (nombre);
+
+CREATE INDEX idx_vehiculo_modelo ON tp_fabrica_automovil_bd1.modelo (modelo);
+
+CREATE INDEX idx_vehiculo_numero_chasis ON tp_fabrica_automovil_bd1.vehiculo (numero_chasis);
+
+CREATE INDEX idx_vehiculo_fecha_finalizacion ON tp_fabrica_automovil_bd1.vehiculo (fecha_egreso);
+
+CREATE INDEX idx_estacion_trabajo_tarea ON tp_fabrica_automovil_bd1.estacion_trabajo (tarea);
