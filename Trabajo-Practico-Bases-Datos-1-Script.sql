@@ -959,3 +959,196 @@ BEGIN
 END
 
 && DELIMITER
+
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Pedido
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_pedido`(
+    IN p_fecha_emision DATE,
+    IN p_total INT,
+    IN p_concesionaria_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+    DECLARE p_fecha_entrega_estimada DATE;
+    DECLARE v_pedido_id INT;
+    DECLARE v_modelo_id INT;
+    DECLARE v_dias_totales INT DEFAULT 0;
+    DECLARE v_fecha_entrega DATE;
+    DECLARE v_cantidad_vehiculos INT;
+    DECLARE v_dias_por_vehiculo INT;
+    DECLARE done INT DEFAULT 0;
+    
+	-- Obtener los detalles del pedido y calcular fechas de entrega para cada vehículo
+	DECLARE cur CURSOR FOR 
+		SELECT modelo_id FROM tp_fabrica_automovil_bd1.pedido_detalle WHERE pedido_id = v_pedido_id;
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Inicializar variables
+    SET p_fecha_entrega_estimada = ADDDATE(CURDATE(), INTERVAL 7 DAY);
+
+    -- Verificar si la concesionaria existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.concesionaria
+    WHERE concesionaria_id = p_concesionaria_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'La concesionaria no existe.';
+    ELSE
+        -- Insertar nuevo pedido
+        INSERT INTO tp_fabrica_automovil_bd1.pedido (fecha_emision, fecha_entrega_estimada, total, concesionaria_id)
+        VALUES (p_fecha_emision, p_fecha_entrega_estimada, p_total, p_concesionaria_id);
+
+        -- Obtener el ID del pedido recién insertado
+        SET v_pedido_id = LAST_INSERT_ID();
+
+        OPEN cur;
+
+        read_loop: LOOP
+            FETCH cur INTO v_modelo_id;
+            IF done THEN
+                LEAVE read_loop;
+            END IF;
+
+            -- Calcular el total de días necesarios para todas las estaciones de trabajo asociadas al modelo del vehículo
+            SELECT SUM(et.demora_estimada_dias) INTO v_dias_totales
+            FROM tp_fabrica_automovil_bd1.estacion_trabajo et
+            JOIN tp_fabrica_automovil_bd1.linea_montaje lm ON lm.linea_montaje_id = et.linea_montaje_id
+            WHERE lm.modelo_id = v_modelo_id;
+
+            -- Contar la cantidad de vehículos del mismo modelo en pedidos pendientes (excluyendo el actual)
+            SELECT COUNT(*) INTO v_cantidad_vehiculos
+            FROM tp_fabrica_automovil_bd1.pedido_detalle pd
+            JOIN tp_fabrica_automovil_bd1.vehiculo v ON v.pedido_detalle_id = pd.pedido_detalle_id
+            WHERE v.modelo_id = v_modelo_id
+            AND pd.pedido_id <> v_pedido_id;
+
+            -- Calcular el tiempo total requerido (días por vehículo multiplicado por la cantidad)
+            SET v_dias_por_vehiculo = v_dias_totales * v_cantidad_vehiculos;
+
+            -- Calcular la nueva fecha de entrega
+            SET v_fecha_entrega = DATE_ADD(p_fecha_entrega_estimada, INTERVAL v_dias_por_vehiculo DAY);
+
+            -- Actualizar la fecha de entrega estimada en la tabla de pedidos
+            UPDATE tp_fabrica_automovil_bd1.pedido
+            SET fecha_entrega_estimada = v_fecha_entrega
+            WHERE pedido_id = v_pedido_id;
+        END LOOP;
+
+        CLOSE cur;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_pedido`(
+    IN p_pedido_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el pedido existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.pedido
+    WHERE pedido_id = p_pedido_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El pedido no existe.';
+    ELSE
+        -- Verificar si hay detalles de pedido asociados
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.pedido_detalle
+        WHERE pedido_id = p_pedido_id;
+
+        IF v_count > 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'No se puede eliminar el pedido, tiene detalles asociados.';
+        ELSE
+            -- Eliminar pedido
+            DELETE FROM tp_fabrica_automovil_bd1.pedido
+            WHERE pedido_id = p_pedido_id;
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_pedido`(
+    IN p_pedido_id INT,
+    IN p_fecha_emision DATE,
+    IN p_fecha_entrega_estimada DATE,
+    IN p_total INT,
+    IN p_concesionaria_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el pedido existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.pedido
+    WHERE pedido_id = p_pedido_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El pedido no existe.';
+    ELSE
+        -- Verificar si la concesionaria existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.concesionaria
+        WHERE concesionaria_id = p_concesionaria_id;
+
+        IF v_count = 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'La concesionaria no existe.';
+        ELSE
+            -- Actualizar pedido
+            UPDATE tp_fabrica_automovil_bd1.pedido
+            SET fecha_emision = p_fecha_emision,
+                fecha_entrega_estimada = p_fecha_entrega_estimada,
+                total = p_total,
+                concesionaria_id = p_concesionaria_id
+            WHERE pedido_id = p_pedido_id;
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
