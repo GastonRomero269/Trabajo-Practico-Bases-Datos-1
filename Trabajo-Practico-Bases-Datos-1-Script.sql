@@ -4378,3 +4378,23 @@ SELECT *, @ultimo_fabrica_automovil_id AS SelectUltimoFabricaAutomovilId FROM fa
 CALL sp_alta_fabrica_automovil('Fabrica Automovil 1', @nResultado, @cMensaje);
 SET @ultimo_fabrica_automovil_id = LAST_INSERT_ID();
 SELECT *, @ultimo_fabrica_automovil_id AS SelectUltimoFabricaAutomovilId FROM fabrica_automovil;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Modelo ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_modelo('Modelo 1', @nResultado, @cMensaje);
+SET @ultimo_modelo_id = LAST_INSERT_ID();
+SELECT *, @ultimo_modelo_id AS SelectUltimoModeloId FROM modelo;
+
+CALL sp_modificacion_modelo(@ultimo_modelo_id, 'Modelo 1 Modificacion', @nResultado, @cMensaje);
+SELECT *, @ultimo_modelo_id AS SelectUltimoModeloId FROM modelo;
+
+CALL sp_baja_modelo(@ultimo_modelo_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_modelo_id AS SelectUltimoModeloId FROM modelo;
+
+CALL sp_alta_modelo('Modelo 1', @nResultado, @cMensaje);
+SET @ultimo_modelo_id = LAST_INSERT_ID();
+SELECT *, @ultimo_modelo_id AS SelectUltimoModeloId FROM modelo;
