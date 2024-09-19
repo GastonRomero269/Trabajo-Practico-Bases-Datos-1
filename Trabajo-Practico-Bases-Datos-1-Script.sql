@@ -4498,3 +4498,23 @@ SELECT *, @ultimo_pedido_detalle_id AS SelectUltimoPedidoDetalleId FROM pedido_d
 CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Modelo 1', 1, @nRespuesta, @cMensaje);
 SET @ultimo_pedido_detalle_id = LAST_INSERT_ID();
 SELECT *, @ultimo_pedido_detalle_id AS SelectUltimoPedidoDetalleId FROM pedido_detalle;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Producto proveedor ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_producto_proveedor(@ultimo_producto_id, @ultimo_proveedor_id, 100, 1, @nRespuesta, @cMensaje);
+SELECT producto_id, proveedor_id INTO @ultimo_producto_id, @ultimo_proveedor_id FROM producto_proveedor pp WHERE pp.producto_id = @ultimo_producto_id AND pp.proveedor_id = @ultimo_proveedor_id LIMIT 1;
+SELECT * FROM producto_proveedor;
+
+CALL sp_modificacion_producto_proveedor(@ultimo_producto_id, @ultimo_proveedor_id, 999, 1, @nRespuesta, @cMensaje);
+SELECT * FROM producto_proveedor;
+
+CALL sp_baja_producto_proveedor(@ultimo_producto_id, @ultimo_proveedor_id, @nResultado, @cMensaje);
+SELECT * FROM producto_proveedor;
+
+CALL sp_alta_producto_proveedor(@ultimo_producto_id, @ultimo_proveedor_id, 100, 1, @nRespuesta, @cMensaje);
+SELECT producto_id, proveedor_id INTO @ultimo_producto_id, @ultimo_proveedor_id FROM producto_proveedor pp WHERE pp.producto_id = @ultimo_producto_id AND pp.proveedor_id = @ultimo_proveedor_id LIMIT 1;
+SELECT * FROM producto_proveedor;
