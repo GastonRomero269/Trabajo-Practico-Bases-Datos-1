@@ -4278,3 +4278,30 @@ GROUP BY
     pd.pedido_id, pd.pedido_detalle_id, v.numero_chasis, v.fecha_egreso;
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE VIEW vw_tiempo_promedio_construccion_linea AS
+SELECT 
+    lm.linea_montaje_id,
+    COUNT(v.vehiculo_id) AS numero_vehiculos,
+    CASE
+        WHEN COUNT(v.vehiculo_id) = 0 THEN 'No hay vehículos terminados en la línea de montaje especificada.'
+        ELSE CONCAT(
+            'Tiempo promedio de construcción: ',
+            ROUND(
+                AVG(DATEDIFF(v.fecha_egreso, v.fecha_ingreso)), 
+                2
+            ) / 30, 
+            ' vehiculos por mes'
+        )
+    END AS tiempo_promedio
+FROM 
+    tp_fabrica_automovil_bd1.linea_montaje lm
+LEFT JOIN 
+    tp_fabrica_automovil_bd1.vehiculo v ON lm.linea_montaje_id = v.linea_montaje_id
+    AND v.fecha_egreso IS NOT NULL
+GROUP BY 
+    lm.linea_montaje_id;
+
+&& DELIMITER 
