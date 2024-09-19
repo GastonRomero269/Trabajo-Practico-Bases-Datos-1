@@ -4478,3 +4478,23 @@ SELECT *, @ultimo_pedido_id AS SelectUltimoPedidoId FROM pedido;
 CALL sp_alta_pedido(CURDATE(), 0, @ultimo_concesionaria_id, @nRespuesta, @cMensaje);
 SET @ultimo_pedido_id = LAST_INSERT_ID();
 SELECT *, @ultimo_pedido_id AS SelectUltimoPedidoId FROM pedido;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Pedido detalle ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Modelo 1', 1, @nRespuesta, @cMensaje);
+SET @ultimo_pedido_detalle_id = LAST_INSERT_ID();
+SELECT *, @ultimo_pedido_detalle_id AS SelectUltimoPedidoDetalleId FROM pedido_detalle;
+
+CALL sp_modificacion_pedido_detalle(@ultimo_pedido_detalle_id, 'X', 0, 1000, @ultimo_modelo_id, @ultimo_pedido_id, @nRespuesta, @cMensaje);
+SELECT *, @ultimo_pedido_detalle_id AS SelectUltimoPedidoDetalleId FROM pedido_detalle;
+
+CALL sp_baja_pedido_detalle(@ultimo_pedido_detalle_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_pedido_detalle_id AS SelectUltimoPedidoDetalleId FROM pedido_detalle;
+
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Modelo 1', 1, @nRespuesta, @cMensaje);
+SET @ultimo_pedido_detalle_id = LAST_INSERT_ID();
+SELECT *, @ultimo_pedido_detalle_id AS SelectUltimoPedidoDetalleId FROM pedido_detalle;
