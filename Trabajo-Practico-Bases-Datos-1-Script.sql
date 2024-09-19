@@ -2005,3 +2005,163 @@ BEGIN
 END
 
 && DELIMITER
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Vehiculo
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_vehiculo`(
+    IN p_numero_chasis VARCHAR(40),
+    IN p_modelo_id INT,  
+    IN p_fecha_ingreso DATE,
+    IN p_fecha_egreso DATE,
+    IN p_precio DOUBLE,
+    IN p_fabrica_automovil_id INT,
+    IN p_linea_montaje_id INT,
+    IN p_pedido_detalle_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el número de chasis ya existe
+    SELECT COUNT(*) INTO v_count FROM tp_fabrica_automovil_bd1.vehiculo WHERE numero_chasis = p_numero_chasis;
+
+    IF v_count > 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El número de chasis ya existe.';
+    ELSE
+        -- Verificar si la fábrica de automóviles existe
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.fabrica_automovil
+        WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+        IF v_count = 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'La fábrica de automóviles no existe.';
+        ELSE
+            -- Insertar nuevo vehículo
+			INSERT INTO tp_fabrica_automovil_bd1.vehiculo (numero_chasis, modelo_id, fecha_ingreso, fecha_egreso, precio, fabrica_automovil_id, linea_montaje_id, pedido_detalle_id) 
+			VALUES (p_numero_chasis, p_modelo_id, p_fecha_ingreso, p_fecha_egreso, p_precio, p_fabrica_automovil_id, p_linea_montaje_id, p_pedido_detalle_id);
+
+            SET p_nResultado = 0;
+            SET p_cMensaje = '';
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_vehiculo`(
+    IN p_vehiculo_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el vehículo existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.vehiculo
+    WHERE vehiculo_id = p_vehiculo_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El vehículo no existe.';
+    ELSE
+        -- Eliminar vehículo
+        DELETE FROM tp_fabrica_automovil_bd1.vehiculo
+        WHERE vehiculo_id = p_vehiculo_id;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_vehiculo`(
+    IN p_vehiculo_id INT,
+    IN p_numero_chasis VARCHAR(10),
+    IN p_modelo_id INT,
+    IN p_fecha_ingreso DATE,
+    IN p_fecha_egreso DATE,
+    IN p_precio DOUBLE,
+    IN p_fabrica_automovil_id INT,
+    IN p_linea_montaje_id INT,
+    IN p_pedido_detalle_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el vehículo existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.vehiculo
+    WHERE vehiculo_id = p_vehiculo_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El vehículo no existe.';
+    ELSE
+        -- Verificar si el número de chasis ya existe (para otros vehículos)
+        SELECT COUNT(*) INTO v_count
+        FROM tp_fabrica_automovil_bd1.vehiculo
+        WHERE numero_chasis = p_numero_chasis AND vehiculo_id <> p_vehiculo_id;
+
+        IF v_count > 0 THEN
+            SET p_nResultado = -2;
+            SET p_cMensaje = 'El número de chasis ya existe.';
+        ELSE
+            -- Verificar si la fábrica de automóviles existe
+            SELECT COUNT(*) INTO v_count
+            FROM tp_fabrica_automovil_bd1.fabrica_automovil
+            WHERE fabrica_automovil_id = p_fabrica_automovil_id;
+
+            IF v_count = 0 THEN
+                SET p_nResultado = -3;
+                SET p_cMensaje = 'La fábrica de automóviles no existe.';
+            ELSE
+                -- Actualizar vehículo
+                UPDATE tp_fabrica_automovil_bd1.vehiculo
+                SET numero_chasis = p_numero_chasis,
+                    modelo_id = p_modelo_id,
+                    fecha_ingreso = p_fecha_ingreso,
+                    fecha_egreso = p_fecha_egreso,
+                    precio = p_precio,
+                    fabrica_automovil_id = p_fabrica_automovil_id,
+                    linea_montaje_id = p_linea_montaje_id,
+                    pedido_detalle_id = p_pedido_detalle_id
+                WHERE vehiculo_id = p_vehiculo_id;
+
+                SET p_nResultado = 0;
+                SET p_cMensaje = '';
+            END IF;
+        END IF;
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
