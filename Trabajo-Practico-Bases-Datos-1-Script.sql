@@ -3828,3 +3828,43 @@ BEGIN
 END
 
 && DELIMITER 
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Functions
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `obtener_precio_por_modelo`(
+    p_vehiculo_modelo_id INT
+) RETURNS DOUBLE
+    DETERMINISTIC
+    NO SQL
+BEGIN
+    DECLARE v_precio DOUBLE;
+    DECLARE v_vehiculo_modelo VARCHAR(50);
+    
+    SELECT modelo INTO v_vehiculo_modelo FROM tp_fabrica_automovil_bd1.modelo m WHERE m.modelo_id = p_vehiculo_modelo_id;
+
+    -- Asignar el precio basado en el modelo
+    CASE v_vehiculo_modelo
+        WHEN 'Renault 12' THEN
+            SET v_precio = 15000.00;
+        WHEN 'Toyota Corolla' THEN
+            SET v_precio = 25000.00;
+        WHEN 'Honda Civic' THEN
+            SET v_precio = 30000.00;
+		WHEN 'Ford Mustang' THEN
+            SET v_precio = 20000.00;
+		WHEN 'Chevrolet Camaro' THEN
+            SET v_precio = 18000.00;
+        ELSE
+            SET v_precio = 10000.00; -- Precio por defecto si el modelo no coincide con ninguno de los anteriores
+    END CASE;
+
+    RETURN v_precio;
+END
+
+&& DELIMITER 
