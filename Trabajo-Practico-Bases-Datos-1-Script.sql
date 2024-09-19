@@ -4660,3 +4660,78 @@ SELECT *, @ultimo_registro_venta_id AS SelectUltimoRegistroVentaloId FROM regist
 CALL sp_alta_registro_venta(CURDATE(), 0, @ultimo_concesionaria_id, @nResultado, @cMensaje);
 SET @ultimo_registro_venta_id = LAST_INSERT_ID();
 SELECT *, @ultimo_registro_venta_id AS SelectUltimoRegistroVentaloId FROM registro_venta;
+
+*/
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Inicializacion de valores de prueba
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_fabrica_automovil('Vanguard Motors', @nRespuesta, @cMensaje);
+SET @ultimo_fabrica_automovil_id = LAST_INSERT_ID();
+
+CALL sp_alta_producto('Chasis', 'Chasis para el motor', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Motor', 'Motor de 700 caballos de fuerza', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Sistema de transmision', 'Sistema de transmision', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Sistema de suspension', 'Suspension', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Sistema de frenos', 'Sistema de frenos', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Sistema de direccion', 'Sistema de direccion', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Sistema de escape', 'Sistema de escape', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Sistema electrico', 'Sistema electrico', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Interior', 'Interior (Asientos, cinturones de seguridad, volante)', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Carroceria', 'Carroceria', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Cristales', 'Ventanas', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_producto('Pintura', '1 Litro de pintura', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+
+CALL sp_alta_linea_montaje(0, 'Libre', 0, "Renault 12", @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_linea_montaje(0, 'Libre', 0, "Toyota Corolla", @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_linea_montaje(0, 'Libre', 0, "Honda Civic", @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_linea_montaje(0, 'Libre', 0, "Ford Mustang", @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_linea_montaje(0, 'Libre', 0, "Chevrolet Camaro", @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+
+CALL sp_alta_concesionaria('AutoWorld', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_concesionaria('MotorCity', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+CALL sp_alta_concesionaria('CarNation', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+
+SET @ultimo_concesionaria_id = LAST_INSERT_ID();
+
+CALL sp_alta_pedido(CURDATE(), 0, @ultimo_concesionaria_id, @nRespuesta, @cMensaje);
+
+SET @ultimo_pedido_id = LAST_INSERT_ID();
+
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Renault 12', 1, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Toyota Corolla', 1, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Honda Civic', 1, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Ford Mustang', 1, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Chevrolet Camaro', 1, @nRespuesta, @cMensaje);
+
+CALL sp_alta_pedido(CURDATE(), 0, @ultimo_concesionaria_id, @nRespuesta, @cMensaje);
+
+SET @ultimo_pedido_id = LAST_INSERT_ID();
+
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Renault 12', 2, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Toyota Corolla', 2, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Honda Civic', 2, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Ford Mustang', 2, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Chevrolet Camaro', 2, @nRespuesta, @cMensaje);
+
+CALL sp_alta_pedido(CURDATE(), 0, @ultimo_concesionaria_id, @nRespuesta, @cMensaje);
+
+SET @ultimo_pedido_id = LAST_INSERT_ID();
+
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Renault 12', 3, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Toyota Corolla', 3, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Honda Civic', 3, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Ford Mustang', 3, @nRespuesta, @cMensaje);
+CALL sp_alta_pedido_detalle(@ultimo_pedido_id, 'Chevrolet Camaro', 3, @nRespuesta, @cMensaje);
+
+CALL sp_alta_proveedor('PartsPro', @nRespuesta, @cMensaje);
+SET @proveedor_1 = LAST_INSERT_ID();
+
+CALL sp_alta_proveedor('AutoGear', @nRespuesta, @cMensaje);
+SET @proveedor_2 = LAST_INSERT_ID();
+
+CALL sp_alta_proveedor('TurboSupply', @nRespuesta, @cMensaje);
+SET @proveedor_3 = LAST_INSERT_ID();
