@@ -4090,3 +4090,36 @@ BEGIN
 	SET cantidad_vehiculos_actual = cantidad_vehiculos_actual + 1
 	WHERE linea_montaje_id = NEW.linea_montaje_id;
 END;
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE TRIGGER actualizar_estado_linea_montaje_ocupado
+AFTER INSERT ON tp_fabrica_automovil_bd1.estacion_trabajo_vehiculo
+FOR EACH ROW
+BEGIN
+    DECLARE v_linea_montaje_id INT;
+    DECLARE v_estacion_trabajo_id INT;
+
+    -- Obtener el ID de la línea de montaje y de la estación de trabajo involucrada
+    SELECT et.linea_montaje_id, et.estacion_trabajo_id
+    INTO v_linea_montaje_id, v_estacion_trabajo_id
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo et
+    WHERE et.estacion_trabajo_id = NEW.estacion_trabajo_id
+    LIMIT 1;
+
+    -- Verificar si es la primera estación de la línea de montaje
+    IF v_estacion_trabajo_id = (
+        SELECT MIN(estacion_trabajo_id)
+        FROM tp_fabrica_automovil_bd1.estacion_trabajo
+        WHERE linea_montaje_id = v_linea_montaje_id
+    ) THEN
+        -- Actualizar el estado de la línea de montaje a "Ocupado"
+        UPDATE tp_fabrica_automovil_bd1.linea_montaje
+        SET estado = 'Ocupado'
+        WHERE linea_montaje_id = v_linea_montaje_id;
+    END IF;
+END
+
+&& DELIMITER 
