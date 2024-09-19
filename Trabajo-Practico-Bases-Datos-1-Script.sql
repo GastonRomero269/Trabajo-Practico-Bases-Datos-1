@@ -4438,3 +4438,23 @@ SELECT *, @ultimo_proveedor_id AS SelectUltimoProveedorId FROM proveedor;
 CALL sp_alta_proveedor('Proveedor 1', @nResultado, @cMensaje);
 SET @ultimo_proveedor_id = LAST_INSERT_ID();
 SELECT *, @ultimo_proveedor_id AS SelectUltimoProveedorId FROM proveedor;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Producto ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_producto('Producto 1', 'Producto 1 Descripcion', @ultimo_fabrica_automovil_id, @nRespuesta, @cMensaje);
+SET @ultimo_producto_id = LAST_INSERT_ID();
+SELECT *, @ultimo_producto_id AS SelectUltimoProductoId FROM producto;
+
+CALL sp_modificacion_producto(@ultimo_producto_id, 'Producto 1 Modificacion', 'Producto 1 Descripcion', @ultimo_fabrica_automovil_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_producto_id AS SelectUltimoproductoId FROM producto;
+
+CALL sp_baja_producto(@ultimo_producto_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_producto_id AS SelectUltimoProductoId FROM producto;
+
+CALL sp_alta_producto('Producto 1', 'Producto 1 Descripcion', @ultimo_fabrica_automovil_id, @nResultado, @cMensaje);
+SET @ultimo_producto_id = LAST_INSERT_ID();
+SELECT *, @ultimo_producto_id AS SelectUltimoProductoId FROM producto;
