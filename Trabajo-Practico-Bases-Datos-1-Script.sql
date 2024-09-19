@@ -2537,3 +2537,84 @@ BEGIN
 END 
 
 && DELIMITER ;
+
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Stored Procedures Auxiliares
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `asignar_proveedor_precio`(
+    IN p_modelo_id INT,
+    IN p_cantidad INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_producto_id INT;
+    DECLARE v_proveedor_id INT;
+    DECLARE v_cantidad INT;
+    DECLARE v_precio DECIMAL(10, 2);
+    DECLARE v_precio_modelo DOUBLE;
+    DECLARE v_precio_minimo DOUBLE;
+    DECLARE v_precio_maximo DOUBLE;
+    DECLARE v_cantidad_estaciones INT;
+    DECLARE done INT DEFAULT 0;
+    
+    -- Cursor para recorrer la tabla producto_vehiculo
+    DECLARE cur CURSOR FOR
+        SELECT producto_id, cantidad
+        FROM tp_fabrica_automovil_bd1.producto_vehiculo
+        WHERE modelo_id = p_modelo_id;
+    
+    -- Manejador para el cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+	SET v_precio_modelo = obtener_precio_por_modelo(p_modelo_id);
+
+    -- Abrir el cursor
+    OPEN cur;
+
+    -- Recorrer los productos asociados al modelo
+    read_loop: LOOP
+        FETCH cur INTO v_producto_id, v_cantidad;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Seleccionar un proveedor aleatorio
+        SET v_proveedor_id = (
+            SELECT proveedor_id 
+            FROM tp_fabrica_automovil_bd1.proveedor 
+            ORDER BY RAND() 
+            LIMIT 1
+        );
+
+		-- Contar la cantidad de estaciones de trabajo para un modelo específico
+		SELECT COUNT(et.estacion_trabajo_id) INTO v_cantidad_estaciones
+		FROM tp_fabrica_automovil_bd1.linea_montaje lm
+		JOIN tp_fabrica_automovil_bd1.estacion_trabajo et ON lm.linea_montaje_id = et.linea_montaje_id
+		WHERE lm.modelo_id = p_modelo_id;
+        SET v_precio = (v_precio_modelo / v_cantidad_estaciones);
+        SET v_precio_minimo = v_precio - ((v_precio_modelo * 5) / 100);
+		SET v_precio_maximo = v_precio + ((v_precio_modelo * 10) / 100);
+		SET v_precio = FLOOR(v_precio_minimo + (RAND() * (v_precio_maximo - v_precio_minimo))) / v_cantidad;
+
+		SET @i = 0;
+		WHILE @i < p_cantidad DO
+			-- Insertar en la tabla intermedia producto_proveedor
+			INSERT INTO tp_fabrica_automovil_bd1.producto_proveedor (producto_id, proveedor_id, precio, cantidad)
+			VALUES (v_producto_id, v_proveedor_id, v_precio, v_cantidad);
+            SET @i = @i + 1;
+        END WHILE;
+    END LOOP;
+
+    -- Cerrar el cursor
+    CLOSE cur;
+END
+
+&& DELIMITER 
