@@ -3883,3 +3883,16 @@ BEGIN
 END
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `calcular_tiempo_construccion`(modelo_id INT) RETURNS double
+    DETERMINISTIC
+BEGIN
+	DECLARE cantidad_dias INT;
+	SELECT SUM(et.demora_estimada_dias) INTO cantidad_dias FROM tp_fabrica_automovil_bd1.estacion_trabajo et JOIN tp_fabrica_automovil_bd1.linea_montaje lm 
+    ON lm.linea_montaje_id = et.linea_montaje_id WHERE lm.modelo_id = modelo_id;
+    RETURN cantidad_dias;
+END
+
+&& DELIMITER 
