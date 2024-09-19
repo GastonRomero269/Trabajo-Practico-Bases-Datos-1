@@ -3970,3 +3970,39 @@ BEGIN
 END
 
 && DELIMITER 
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- TRIGGERS
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE TRIGGER actualizar_estado_pedido_detalle
+AFTER UPDATE ON vehiculo
+FOR EACH ROW
+BEGIN
+    DECLARE vehiculos_terminados INT;
+    DECLARE vehiculos_totales INT;
+
+    -- Contar el total de vehículos asociados al pedido detalle
+    SELECT COUNT(*) INTO vehiculos_totales
+    FROM vehiculo
+    WHERE pedido_detalle_id = OLD.pedido_detalle_id;
+
+    -- Contar los vehículos terminados asociados al pedido detalle
+    SELECT COUNT(*) INTO vehiculos_terminados
+    FROM vehiculo
+    WHERE pedido_detalle_id = OLD.pedido_detalle_id
+      AND (fecha_egreso IS NOT NULL);
+
+    -- Si todos los vehículos están terminados, actualizar el estado del pedido detalle
+    IF vehiculos_totales = vehiculos_terminados THEN
+        UPDATE pedido_detalle
+        SET estado = 'Terminado'
+        WHERE pedido_detalle_id = OLD.pedido_detalle_id;
+    END IF;
+END 
+
+&& DELIMITER 
