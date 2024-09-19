@@ -4458,3 +4458,23 @@ SELECT *, @ultimo_producto_id AS SelectUltimoProductoId FROM producto;
 CALL sp_alta_producto('Producto 1', 'Producto 1 Descripcion', @ultimo_fabrica_automovil_id, @nResultado, @cMensaje);
 SET @ultimo_producto_id = LAST_INSERT_ID();
 SELECT *, @ultimo_producto_id AS SelectUltimoProductoId FROM producto;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Pedido ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CALL sp_alta_pedido(CURDATE(), 0, @ultimo_concesionaria_id, @nRespuesta, @cMensaje);
+SET @ultimo_pedido_id = LAST_INSERT_ID();
+SELECT *, @ultimo_pedido_id AS SelectUltimoPedidoId FROM pedido;
+
+CALL sp_modificacion_pedido(@ultimo_pedido_id, CURDATE(), CURDATE(), 1000000, @ultimo_concesionaria_id, @nRespuesta, @cMensaje);
+SELECT *, @ultimo_pedido_id AS SelectUltimoPedidoId FROM pedido;
+
+CALL sp_baja_pedido(@ultimo_pedido_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_pedido_id AS SelectUltimoPedidoId FROM pedido;
+
+CALL sp_alta_pedido(CURDATE(), 0, @ultimo_concesionaria_id, @nRespuesta, @cMensaje);
+SET @ultimo_pedido_id = LAST_INSERT_ID();
+SELECT *, @ultimo_pedido_id AS SelectUltimoPedidoId FROM pedido;
