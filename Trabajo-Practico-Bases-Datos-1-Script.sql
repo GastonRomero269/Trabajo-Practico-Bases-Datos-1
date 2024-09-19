@@ -2902,3 +2902,76 @@ END;
 
 
 && DELIMITER 
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `cargar_productos_a_estaciones`(
+	IN p_pedido_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+	DECLARE v_pedido_detalle_id INT;
+    DECLARE v_vehiculo_modelo_id INT;
+    DECLARE v_cantidad INT;
+    DECLARE v_numero_chasis VARCHAR(40);
+    DECLARE v_precio DOUBLE;
+    DECLARE v_fecha_ingreso DATETIME DEFAULT CURDATE();
+    DECLARE v_fecha_egreso DATETIME;
+    DECLARE v_linea_montaje_id INT;
+    DECLARE i INT;
+    DECLARE done INT DEFAULT 0;
+    DECLARE v_fabrica_automovil_id INT DEFAULT 1;
+    DECLARE v_linea_montaje_id_prueba INT; 
+    
+    -- Cursor para recorrer todos los detalles del pedido
+    DECLARE cur CURSOR FOR
+        SELECT 
+            pd.pedido_detalle_id,
+            pd.modelo_id,
+            pd.cantidad
+        FROM 
+            tp_fabrica_automovil_bd1.pedido_detalle pd
+        WHERE 
+            pd.pedido_id = p_pedido_id;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Inicializar valores
+    SET p_nResultado = 0;
+    SET p_cMensaje = '';
+
+	IF EXISTS (SELECT 1 FROM tp_fabrica_automovil_bd1.pedido WHERE pedido_id = p_pedido_id) THEN
+		OPEN cur;
+
+		-- Recorrer los detalles del pedido
+		read_loop: LOOP
+			FETCH cur INTO v_pedido_detalle_id, v_vehiculo_modelo_id, v_cantidad;
+			IF done THEN
+				LEAVE read_loop;
+			END IF;
+            
+            SELECT linea_montaje_id INTO v_linea_montaje_id FROM tp_fabrica_automovil_bd1.vehiculo v WHERE v.pedido_detalle_id = v_pedido_detalle_id LIMIT 1;
+
+			-- Reiniciar el contador
+			SET i = 0;
+
+			-- Bucle WHILE para ejecutar el procedimiento la cantidad de veces especificada
+			WHILE i < v_cantidad DO
+				-- Llamar al procedimiento para cargar los productos necesarios para el vehículo
+				CALL asignar_productos_a_estaciones(v_linea_montaje_id, v_vehiculo_modelo_id, p_nResultado, p_cMensaje);
+				
+				-- Incrementar el contador
+				SET i = i + 1;
+			END WHILE;
+
+		END LOOP;
+
+		CLOSE cur;
+	ELSE 
+		SET p_nResultado = -1;
+		SET p_cMensaje = 'No existe el pedido';
+	END IF;
+END
+
+&& DELIMITER
