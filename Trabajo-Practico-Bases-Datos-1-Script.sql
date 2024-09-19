@@ -4580,3 +4580,23 @@ SELECT *, @ultimo_estacion_trabajo_id AS SelectUltimoEstacionTrabajoId FROM esta
 CALL sp_alta_estacion_trabajo('A', 1, 'Libre', @ultimo_linea_montaje_id, null, @nResultado, @cMensaje);
 SET @ultimo_estacion_trabajo_id = LAST_INSERT_ID();
 SELECT *, @ultimo_estacion_trabajo_id AS SelectUltimoEstacionTrabajoId FROM estacion_trabajo;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Vehiculo ABM
+
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
+CALL sp_alta_vehiculo('AAAAAA', @ultimo_modelo_id, CURDATE(), NULL, 0, @ultimo_fabrica_automovil_id, @ultimo_linea_montaje_id, @ultimo_pedido_detalle_id, @nResultado, @cMensaje);
+SET @ultimo_vehiculo_id = LAST_INSERT_ID();
+SELECT *, @ultimo_vehiculo_id AS SelectUltimoVehiculoId FROM vehiculo;
+
+CALL sp_modificacion_vehiculo(@ultimo_vehiculo_id, 'AAAAAA', @ultimo_modelo_id, CURDATE(), NULL, 100000, @ultimo_fabrica_automovil_id, @ultimo_linea_montaje_id, @ultimo_pedido_detalle_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_vehiculo_id AS SelectUltimoVehiculoId FROM vehiculo;
+
+CALL sp_baja_vehiculo(@ultimo_vehiculo_id, @nResultado, @cMensaje);
+SELECT *, @ultimo_vehiculo_id AS SelectUltimoVehiculoId FROM vehiculo;
+
+CALL sp_alta_vehiculo('AAAAAA', @ultimo_modelo_id, CURDATE(), NULL, 0, @ultimo_fabrica_automovil_id, @ultimo_linea_montaje_id, @ultimo_pedido_detalle_id, @nResultado, @cMensaje);
+SET @ultimo_vehiculo_id = LAST_INSERT_ID();
+SELECT *, @ultimo_vehiculo_id AS SelectUltimoVehiculoId FROM vehiculo;
