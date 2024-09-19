@@ -2439,3 +2439,101 @@ BEGIN
 END
 
 && DELIMITER
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Modelo
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER &&
+
+CREATE PROCEDURE sp_alta_modelo(
+    IN p_modelo VARCHAR(50),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el modelo ya existe
+    SELECT COUNT(*) INTO v_count
+    FROM modelo
+    WHERE modelo = p_modelo;
+
+    IF v_count > 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El modelo ya existe.';
+    ELSE
+        -- Insertar nuevo modelo
+        INSERT INTO modelo (modelo)
+        VALUES (p_modelo);
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+END 
+
+&& DELIMITER;
+
+DELIMITER &&
+
+CREATE PROCEDURE sp_baja_modelo(
+    IN p_modelo_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el modelo existe
+    SELECT COUNT(*) INTO v_count
+    FROM modelo
+    WHERE modelo_id = p_modelo_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El modelo no existe.';
+    ELSE
+        -- Eliminar el modelo
+        DELETE FROM modelo
+        WHERE modelo_id = p_modelo_id;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+END 
+
+&& DELIMITER ;
+
+DELIMITER &&
+
+CREATE PROCEDURE sp_modificacion_modelo(
+    IN p_modelo_id INT,
+    IN p_nuevo_modelo VARCHAR(50),
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el modelo existe
+    SELECT COUNT(*) INTO v_count
+    FROM modelo
+    WHERE modelo_id = p_modelo_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El modelo no existe.';
+    ELSE
+        -- Actualizar el modelo
+        UPDATE modelo
+        SET modelo = p_nuevo_modelo
+        WHERE modelo_id = p_modelo_id;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+END 
+
+&& DELIMITER ;
