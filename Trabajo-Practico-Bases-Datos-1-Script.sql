@@ -2301,3 +2301,141 @@ BEGIN
 END
 
 && DELIMITER
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Estacion trabajo producto
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_alta_estacion_trabajo_producto`(
+    IN p_estacion_trabajo_id INT,
+    IN p_producto_id INT,
+    IN p_cantidad INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count_estacion_trabajo_id INT;
+    DECLARE v_count_producto_id INT;
+    
+	SET p_nResultado = 0;
+	SET p_cMensaje = '';
+
+    -- Verificar si ya existe un registro con las mismas claves
+    SELECT COUNT(*) INTO v_count_estacion_trabajo_id
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo
+    WHERE estacion_trabajo_id = p_estacion_trabajo_id;
+    
+	SELECT COUNT(*) INTO v_count_producto_id
+    FROM tp_fabrica_automovil_bd1.producto
+	WHERE producto_id = p_producto_id;
+
+	IF v_count_estacion_trabajo_id = 0 THEN
+    	SET p_nResultado = -1;
+		SET p_cMensaje = 'La estacion de trabajo no existe';
+    ELSEIF v_count_producto_id = 0 THEN
+    	SET p_nResultado = -2;
+		SET p_cMensaje = 'El producto no existe';
+    ELSE
+    	-- Insertar el nuevo registro
+		INSERT INTO tp_fabrica_automovil_bd1.estacion_trabajo_producto (estacion_trabajo_id, producto_id, cantidad)
+		VALUES (p_estacion_trabajo_id, p_producto_id, p_cantidad);
+    END IF;
+    
+	IF p_cMensaje IS NOT NULL AND LENGTH(p_cMensaje) > 0 THEN
+		SELECT p_nResultado, p_cMensaje;
+	END IF;
+END
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_baja_estacion_trabajo_producto`(
+    IN p_estacion_trabajo_id INT,
+    IN p_producto_id INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- Verificar si el registro existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo_producto
+    WHERE estacion_trabajo_id = p_estacion_trabajo_id
+    AND producto_id = p_producto_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El registro no existe';
+    ELSE
+        -- Eliminar el registro
+        DELETE FROM tp_fabrica_automovil_bd1.estacion_trabajo_producto
+        WHERE estacion_trabajo_id = p_estacion_trabajo_id
+        AND producto_id = p_producto_id;
+
+        SET p_nResultado = 0;
+        SET p_cMensaje = '';
+    END IF;
+END
+
+
+&& DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modificacion_estacion_trabajo_producto`(
+    IN p_estacion_trabajo_id INT,
+    IN p_producto_id INT,
+    IN p_cantidad INT,
+    OUT p_nResultado INT,
+    OUT p_cMensaje VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+    DECLARE v_count_estacion_trabajo_id INT;
+    DECLARE v_count_producto_id INT;
+
+    -- Verificar si el registro original existe
+    SELECT COUNT(*) INTO v_count
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo_producto
+    WHERE estacion_trabajo_id = p_estacion_trabajo_id
+    AND producto_id = p_producto_id;
+    
+	SELECT COUNT(*) INTO v_count_estacion_trabajo_id
+    FROM tp_fabrica_automovil_bd1.estacion_trabajo
+    WHERE estacion_trabajo_id = p_estacion_trabajo_id;
+    
+	SELECT COUNT(*) INTO v_count_producto_id
+    FROM tp_fabrica_automovil_bd1.producto
+    WHERE producto_id = p_producto_id;
+
+    IF v_count = 0 THEN
+        SET p_nResultado = -1;
+        SET p_cMensaje = 'El registro original no existe';
+    ELSEIF v_count_estacion_trabajo_id = 0 THEN
+		SET p_nResultado = -2;
+        SET p_cMensaje = 'La estacion de trabajo no existe';
+    ELSEIF v_count_producto_id = 0 THEN
+		SET p_nResultado = -3;
+        SET p_cMensaje = 'El producto no existe';
+    ELSE
+		-- Actualizar el registro
+		UPDATE tp_fabrica_automovil_bd1.estacion_trabajo_producto
+		SET estacion_trabajo_id = p_estacion_trabajo_id,
+			producto_id = p_producto_id,
+			cantidad = p_cantidad
+		WHERE estacion_trabajo_id = p_estacion_trabajo_id
+		AND producto_id = p_producto_id;
+
+		SET p_nResultado = 0;
+		SET p_cMensaje = '';
+    END IF;
+END
+
+&& DELIMITER
