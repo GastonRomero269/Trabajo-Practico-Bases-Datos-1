@@ -3939,3 +3939,17 @@ END;
 
 
 && DELIMITER
+
+DELIMITER &&
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `total_pedidos_concesionaria`(concesionaria_id INT) RETURNS int
+    DETERMINISTIC
+BEGIN
+    DECLARE total INT;
+    SELECT COUNT(*) INTO total 
+    FROM pedido 
+    WHERE concesionaria_id = concesionaria_id;
+    RETURN total;
+END
+
+&& DELIMITER 
